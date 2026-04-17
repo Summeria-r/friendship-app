@@ -11,7 +11,7 @@ from typing import Dict
 
 # 把数据库配置改成函数，启动时再读取
 def get_tortoise_config() -> Dict:
-    database_url = os.getenv("DATABASE_URL")
+    database_url = "mysql://root:KMTwaHuaXbUKPeZUPvxCGBGxYwDRWuys@shortline.proxy.rlwy.net:33643/railway"
     return {
         "connections": {
             "default": database_url,
