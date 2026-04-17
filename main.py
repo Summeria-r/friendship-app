@@ -11,7 +11,7 @@ import asyncio
 
 # 导入全局配置
 from app.models import comment
-from config import TORTOISE_ORM, SECRET_KEY, SESSION_MAX_AGE
+from config import TORTOISE_ORM, SECRET_KEY, SESSION_MAX_AGE, get_tortoise_config
 
 # 导入异常处理器
 from app.exceptions import (
@@ -89,6 +89,8 @@ app.mount("/templates",StaticFiles(directory="templates"),name="templates")
 # 2.模板引擎配置
 templates = Jinja2Templates(directory="templates")
 
+# 启动时再读取配置
+TORTOISE_ORM = get_tortoise_config()
 # 3.注册Tortoise-ORM
 register_tortoise(
     app,
@@ -140,5 +142,7 @@ app.include_router(message_router, tags=["消息通知模块"])
 if __name__ == "__main__":
     # 启动应用
     import uvicorn
+    import os
+    port = int(os.getenv("PORT", 8000))  # 自动获取云平台分配的端口
     # uvicorn.run(app, host="10.223.98.11", port=8000)  发语音不行
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=port)
