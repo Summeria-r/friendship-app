@@ -11,7 +11,7 @@ import asyncio
 
 # 导入全局配置
 from app.models import comment
-from config import TORTOISE_ORM, SECRET_KEY, SESSION_MAX_AGE, get_tortoise_config
+from config import SECRET_KEY, SESSION_MAX_AGE, get_tortoise_config
 
 # 导入异常处理器
 from app.exceptions import (
