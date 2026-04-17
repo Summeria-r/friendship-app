@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发布帖子</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 引入外部CSS文件 -->
+  <link rel="stylesheet" href="/static/css/post.css">
+</head>
+
+<body class="bg-gray-50">
+  {% include 'common.html' %}
+
+  <form action="{% if post %}/posts/update/{{ post.id }}{% else %}/posts/create{% endif %}" method="POST" enctype="multipart/form-data" class="main_container">
+    <!-- 违规禁止提示 -->
+    <div class="warn_box">
+      <i class="fa fa-exclamation-circle mr-1"></i>
+      禁止发布二维码、诈骗、广告、低俗、辱骂等违规内容，违者将封禁账号！
+    </div>
+
+    <!-- 发帖输入框 -->
+    <div class="post_card">
+      <input type="text" name="title" class="big-title w-full p-2 outline-none text-xl font-bold" placeholder="帖子标题" value="{{ post.title if post else '' }}" required>
+      <hr class="my-2">
+      <textarea name="content" class="post_textarea w-full h-40 p-2 outline-none resize-none" placeholder="~ 你来投稿一下，说点什么吧 ~" required>{{ post.content if post else '' }}</textarea>
+
+      <div class="upload_box">
+        <div class="upload_box-top">
+          <label class="upload_btn">
+            <i class="fa fa-camera text-xl"></i>
+            <input type="file" name="files" accept="image/*" multiple class="hidden" id="image-upload">
+          </label>
+          <span class="upload_tip">可上传多张图片，单张不超过5MB</span>
+        </div>
+        <div class="image-preview-container" id="image-preview-container"></div>
+      </div>
+    </div>
+
+    <!-- 置顶开关 -->
+    <div class="stick_card">
+      <div>发布后置顶</div>
+      <input type="checkbox" name="is_sticky" class="switch-checkbox">
+    </div>
+
+    <!-- 主题分类 -->
+    <div class="cate_card">
+      <div class="cate_head">
+        <span>主题分类 <span class="red_star">*</span></span>
+        <span class="cate_tip">必选，不可为空</span>
+      </div>
+      <select name="category" class="cate_select w-full p-2 border rounded" required>
+        <option value="" disabled {% if not post %}selected{% endif %}>请选择分类</option>
+        <option value="比赛" {% if post and post.category.value == '比赛' %}selected{% endif %}>比赛</option>
+        <option value="吃饭" {% if post and post.category.value == '吃饭' %}selected{% endif %}>吃饭</option>
+        <option value="兴趣" {% if post and post.category.value == '兴趣' %}selected{% endif %}>兴趣</option>
+        <option value="学习" {% if post and post.category.value == '学习' %}selected{% endif %}>学习</option>
+        <option value="失物寻物" {% if post and post.category.value == '失物寻物' %}selected{% endif %}>失物寻物</option>
+        <option value="拼车" {% if post and post.category.value == '拼车' %}selected{% endif %}>拼车</option>
+        <option value="二手" {% if post and post.category.value == '二手' %}selected{% endif %}>二手</option>
+        <option value="其他" {% if post and post.category.value == '其他' %}selected{% endif %}>其他</option>
+      </select>
+    </div>
+
+    <!-- 不让谁看 -->
+    <div class="privacy_card">
+      <span>不让谁看</span>
+      <div class="privacy_right">
+        <span>所有人可见</span>
+        <i class="fa fa-angle-right"></i>
+      </div>
+    </div>
+
+    <!-- 发布/更新按钮 -->
+    <button type="submit" class="submit_btn">{% if post %}更新帖子{% else %}发布帖子{% endif %}</button>
+  </form>
+
+  {% if success %}
+  <script>
+    alert('{% if post %}更新帖子成功！{% else %}发帖成功！{% endif %}');
+    window.location.href = '/my_posts';
+  </script>
+  {% endif %}
+
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4F46E5',
+            secondary: '#EC4899',
+            success: '#10B981',
+            info: '#3B82F6',
+            warning: '#F59E0B',
+            danger: '#EF4444',
+          },
+        },
+      }
+    }
+
+    // 图片上传预览功能
+    const imageUpload = document.getElementById('image-upload');
+    const previewContainer = document.getElementById('image-preview-container');
+    const postForm = document.querySelector('form');
+    const filesArray = [];
+    
+    // 编辑模式下显示原有图片
+    {% if post and post.image_urls %}
+    {% for image_url in post.image_urls %}
+    const existingImage = document.createElement('div');
+    existingImage.className = 'image-preview';
+    existingImage.innerHTML = `
+      <img src="{{ image_url }}" alt="现有图片">
+      <button type="button" class="remove-image">×</button>
+    `;
+    previewContainer.appendChild(existingImage);
+    
+    const removeButton = existingImage.querySelector('.remove-image');
+    removeButton.addEventListener('click', function() {
+      existingImage.remove();
+    });
+    {% endfor %}
+    {% endif %}
+
+    function getFileKey(file) {
+      return `${file.name}_${file.size}_${file.lastModified}`;
+    }
+
+    function syncInputFiles() {
+      const dataTransfer = new DataTransfer();
+      filesArray.forEach(file => dataTransfer.items.add(file));
+      imageUpload.files = dataTransfer.files;
+    }
+
+    imageUpload.addEventListener('change', function(e) {
+      const files = Array.from(e.target.files || []);
+
+      files.forEach(file => {
+        if (!file.type.startsWith('image/')) {
+          return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          alert(`图片 ${file.name} 超过 5MB，无法上传`);
+          return;
+        }
+
+        if (filesArray.some(item => getFileKey(item) === getFileKey(file))) {
+          return;
+        }
+
+        filesArray.push(file);
+
+        const reader = new FileReader();
+        reader.onload = function(loadEvent) {
+          const preview = document.createElement('div');
+          preview.className = 'image-preview';
+          preview.dataset.fileKey = getFileKey(file);
+          preview.innerHTML = `
+            <img src="${loadEvent.target.result}" alt="预览图片">
+            <button type="button" class="remove-image">×</button>
+          `;
+          previewContainer.appendChild(preview);
+
+          const removeButton = preview.querySelector('.remove-image');
+          removeButton.addEventListener('click', function() {
+            const targetKey = preview.dataset.fileKey;
+            const targetIndex = filesArray.findIndex(item => getFileKey(item) === targetKey);
+            if (targetIndex !== -1) {
+              filesArray.splice(targetIndex, 1);
+            }
+            preview.remove();
+            syncInputFiles();
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+
+      syncInputFiles();
+      this.value = '';
+    });
+
+    postForm.addEventListener('submit', function() {
+      syncInputFiles();
+    });
+  </script>
+
+</body>
+
+</html>

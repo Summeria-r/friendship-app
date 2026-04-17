@@ -1,0 +1,65 @@
+{
+  "id": "",
+  "name": "",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "1220305",
+      "name": "个人资料",
+      "font_class": "gerenziliao",
+      "unicode": "e608",
+      "unicode_decimal": 58888
+    },
+    {
+      "icon_id": "1376055",
+      "name": "退出登录",
+      "font_class": "tuichudenglu",
+      "unicode": "e61d",
+      "unicode_decimal": 58909
+    },
+    {
+      "icon_id": "4690458",
+      "name": "私信消息",
+      "font_class": "sixinxiaoxi",
+      "unicode": "e6a2",
+      "unicode_decimal": 59042
+    },
+    {
+      "icon_id": "15001647",
+      "name": "我的帖子",
+      "font_class": "wodetiezi",
+      "unicode": "e660",
+      "unicode_decimal": 58976
+    },
+    {
+      "icon_id": "15077404",
+      "name": "我的收藏",
+      "font_class": "wodeshoucang",
+      "unicode": "e630",
+      "unicode_decimal": 58928
+    },
+    {
+      "icon_id": "16546171",
+      "name": "账号设置",
+      "font_class": "zhanghaoshezhi",
+      "unicode": "e611",
+      "unicode_decimal": 58897
+    },
+    {
+      "icon_id": "22326471",
+      "name": "我的回复",
+      "font_class": "wodehuifu",
+      "unicode": "e64b",
+      "unicode_decimal": 58955
+    },
+    {
+      "icon_id": "40375717",
+      "name": "更多",
+      "font_class": "gengduo",
+      "unicode": "e6e0",
+      "unicode_decimal": 59104
+    }
+  ]
+}

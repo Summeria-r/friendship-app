@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>学习搭子</title>
+  <link rel="stylesheet" href="../static/css/base.css">
+  <link rel="stylesheet" href="../static/css/common.css">
+  <link rel="stylesheet" href="../static/iconfont3/iconfont.css">
+  <link rel="stylesheet" href="../static/css/study_buddy.css">
+</head>
+
+<body>
+  <!-- 导航 -->
+  <div id="navbar-container"></div>
+  <div class="page-wrapper">
+    <!-- 搜索框 -->
+    <div class="search-box container">
+      <i class="fa fa-search"></i>
+      <input type="text" placeholder="搜索">
+    </div>
+    <!-- 分类小模块 -->
+    <div class="filter-tags container">
+      <span class="filter-tag active"><a href="#">全部</a></span>
+      <span class="filter-tag"><a href="#">考研</a></span>
+      <span class="filter-tag"><a href="#">考公</a></span>
+      <span class="filter-tag"><a href="#">四六级</a></span>
+      <span class="filter-tag"><a href="#">考编</a></span>
+      <span class="filter-tag"><a href="#">专业课</a></span>
+    </div>
+    <!-- 帖子列表 -->
+    <div class="post-list container">
+      <div class="card">
+        <div class="post-card">
+          <img src="https://picsum.photos/40/40" alt="用户头像" class="post-avatar">
+          <div class="post-author-info">
+            <div class="post-author">科创小能手</div>
+            <div class="post-time">2小时前</div>
+          </div>
+        </div>
+        <div class="post-content">
+          大家好～我是科创小能手！目前正在筹备学科竞赛/科创比赛项目，寻找志同道合的小伙伴一起组队冲奖！
+        </div>
+        <span class="action-btn like" data-action="like"><i class="iconfont icon-dianzan"></i><span
+            class="count">99+</span></span>
+        <span class="action-btn comment" data-action="comment"><i class="iconfont icon-pinglun"></i><span
+            class="count">55</span></span>
+        <span class="action-btn collect" data-action="collect"><i class="iconfont icon-shoucang"></i><span
+            class="count">88</span></span>
+      </div>
+    </div>
+
+  </div>
+  <script>
+    // 用 fetch 加载 common.html 并插入到页面
+    fetch('./common.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      })
+      .catch(err => console.error('加载导航栏失败:', err));
+
+
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn =>
+      btn.addEventListener('click', function () {
+        this.classList.toggle('active');
+
+        const countEI = this.querySelector('.count');
+        const action = this.dataset.action;
+        let count = countEI.textContent;
+        if (action === 'like' || action === 'collect') {
+          if (this.classList.contains('active')) {
+            countEI.textContent = (parseInt(count) || 0) + 1;
+          } else {
+            countEI.textContent = (parseInt(count) || 0) - 1;
+          }
+        }
+
+      })
+    )
+  </script>
+
+</body>
+
+</html>

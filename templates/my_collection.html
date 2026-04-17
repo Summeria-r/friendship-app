@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的收藏</title>
+  <link rel="stylesheet" href="/static/css/my_collection.css">
+  <!-- 保持你本地图标路径不变 -->
+  <link rel="stylesheet" href="/static/iconfont3/iconfont.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+  {% include 'common.html' %}
+
+  <div class="posts-wrap">
+    <!-- 页面头部 -->
+    <div class="posts-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="/personal/center" style="color: #666;"><i class="fa fa-arrow-left"></i></a>
+        <h2>我的收藏</h2>
+      </div>
+    </div>
+
+    <!-- 收藏列表 -->
+    <div class="posts-list">
+      {% for post in posts %}
+      <div class="post-item" onclick="window.location.href='/posts/{{ post.id }}'" style="cursor: pointer;">
+        <div class="post-content">
+          <h3 class="post-title">{{ post.title }}</h3>
+          <p class="post-desc">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</p>
+          <span class="post-tag">{{ post.category.value }}搭子</span>
+        </div>
+        <div class="post-stats">
+          <span class="action-btn like" data-action="like"><i class="iconfont icon-dianzan"></i><span
+              class="count">{{ post.like_count }}</span></span>
+          <span class="action-btn comment" data-action="comment"><i class="iconfont icon-pinglun"></i><span
+              class="count">{{ post.comment_count }}</span></span>
+          <span class="action-btn collect active" data-action="collect"><i class="iconfont icon-shoucang"></i><span
+              class="count">{{ post.collect_count }}</span></span>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if not posts %}
+      <div style="text-align: center; padding: 40px; color: #999;">暂无收藏内容</div>
+      {% endif %}
+    </div>
+  </div>
+  <script>
+    const actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(btn =>
+      btn.addEventListener('click', function () {
+        this.classList.toggle('active');
+
+        const countEI = this.querySelector('.count');
+        const action = this.dataset.action;
+        let count = countEI.textContent;
+        if (action === 'like' || action === 'collect') {
+          if (this.classList.contains('active')) {
+            countEI.textContent = (parseInt(count) || 0) + 1;
+          } else {
+            countEI.textContent = (parseInt(count) || 0) - 1;
+          }
+        }
+
+      })
+    )
+  </script>
+
+</body>
+
+</html>

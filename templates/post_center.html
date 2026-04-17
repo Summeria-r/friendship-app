@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>发帖中心</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/post_center.css">
+</head>
+
+<body class="body-bg">
+  <!-- 导航 -->
+  {% include 'common.html' %}
+
+  <div class="main-container">
+    <!-- 椭圆形搜索框 -->
+    <div class="search-container">
+      <div class="search-wrap">
+        <i class="fa fa-search search-icon"></i>
+        <input type="text" id="search-input" class="search-input" placeholder="搜索帖子、关键词、内容" onkeypress="if(event.key === 'Enter') performSearch()">
+      </div>
+      <button class="search-button" onclick="performSearch()">搜索</button>
+    </div>
+    
+
+   
+
+    <!-- 近期热搜（艺术字标题） -->
+    <h2 class="hot-title">近期热搜</h2>
+
+    <!-- 10条热榜 两行一组 -->
+    <div class="rank-list">
+      {% for i in range(0, hot_posts|length, 2) %}
+      <div class="rank-line">
+        <!-- 第一个项目 -->
+        <a href="/posts/{{ hot_posts[i].id }}" class="rank-item">
+          <span class="rank-num {% if i < 3 %}rank-num-hot{% else %}rank-num-normal{% endif %}">{{ i + 1 }}</span>
+          <span class="rank-text">{{ hot_posts[i].title }}</span>
+        </a>
+        <!-- 第二个项目 (如果存在) -->
+        {% if i + 1 < hot_posts|length %}
+        <a href="/posts/{{ hot_posts[i+1].id }}" class="rank-item">
+          <span class="rank-num {% if i + 1 < 3 %}rank-num-hot{% else %}rank-num-normal{% endif %}">{{ i + 2 }}</span>
+          <span class="rank-text">{{ hot_posts[i+1].title }}</span>
+        </a>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- 整行大按钮分类 -->
+    <div class="category-wrap">
+      <a href="/posts" class="category-item {% if not current_category %}category-active{% else %}category-inactive{% endif %}">全部</a>
+      <a href="/posts?category=比赛" class="category-item {% if current_category == '比赛' %}category-active{% else %}category-inactive{% endif %}">比赛</a>
+      <a href="/posts?category=二手" class="category-item {% if current_category == '二手' %}category-active{% else %}category-inactive{% endif %}">二手</a>
+      <a href="/posts?category=失物寻物" class="category-item {% if current_category == '失物寻物' %}category-active{% else %}category-inactive{% endif %}">失物寻物</a>
+      <a href="/posts?category=拼车" class="category-item {% if current_category == '拼车' %}category-active{% else %}category-inactive{% endif %}">拼车</a>
+      <a href="/posts?category=学习" class="category-item {% if current_category == '学习' %}category-active{% else %}category-inactive{% endif %}">学习</a>
+      <a href="/posts?category=兴趣" class="category-item {% if current_category == '兴趣' %}category-active{% else %}category-inactive{% endif %}">兴趣</a>
+      <a href="/posts?category=吃饭" class="category-item {% if current_category == '吃饭' %}category-active{% else %}category-inactive{% endif %}">吃饭</a>
+      <a href="/posts?category=其他" class="category-item {% if current_category == '其他' %}category-active{% else %}category-inactive{% endif %}">其他</a>
+    </div>
+
+    <!-- 帖子列表 -->
+    <div id="postList" class="post-list">
+      {% for post in posts %}
+      <div class="post-card" onclick="window.location.href='/posts/{{ post.id }}'">
+        <div class="post-header">
+          <h3 class="post-title">{{ post.title }}</h3>
+          <span class="post-time">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        <p class="post-desc">{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</p>
+        {% if post.image_urls and post.image_urls|length > 0 %}
+        <div class="post-image-wrap">
+          <img src="{{ post.image_urls[0] }}" alt="帖子图片" class="post-image" onclick="event.stopPropagation(); viewImage('{{ post.image_urls[0] }}')">
+          {% if post.image_urls|length > 1 %}
+          <span class="post-image-count">+{{ post.image_urls|length - 1 }}</span>
+          {% endif %}
+        </div>
+        {% endif %}
+        <div class="flex justify-between items-center mt-3">
+          <span class="post-tag tag-{{ post.category.value|lower }}">{{ post.category.value }}</span>
+          <div class="flex space-x-4 text-gray-500 text-sm">
+            <span id="like-btn-{{ post.id }}" onclick="event.stopPropagation(); toggleLike('post', {{ post.id }})" style="cursor: pointer;"><i class="fa fa-thumbs-o-up"></i> <span id="like-count-{{ post.id }}">{{ post.like_count }}</span></span>
+            <span><i class="fa fa-comment-o"></i> {{ post.comment_count }}</span>
+            <span id="collect-btn-{{ post.id }}" onclick="event.stopPropagation(); toggleCollect({{ post.id }})" style="cursor: pointer;"><i class="fa fa-star-o"></i> <span id="collect-count-{{ post.id }}">{{ post.collect_count }}</span></span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <script>
+    // 分类切换
+    const items = document.querySelectorAll('.category-item');
+    items.forEach(item => {
+      item.addEventListener('click', () => {
+        items.forEach(i => {
+          i.classList.remove('category-active');
+          i.classList.add('category-inactive');
+        });
+        item.classList.remove('category-inactive');
+        item.classList.add('category-active');
+        alert('切换至分类：' + item.textContent.trim() + '，可加载对应帖子列表');
+      });
+    });
+
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4F46E5',
+            hot: '#F43F5E',
+            normal: '#6B7280',
+          },
+          fontFamily: {
+            art: ['system-ui', 'sans-serif']
+          }
+        }
+      }
+    }
+
+    async function toggleLike(type, id) {
+      let url = '';
+      if (type === 'post') {
+        url = `/likes/post/${id}`;
+      } else if (type === 'comment') {
+        url = `/likes/comment/${id}`;
+      }
+      const res = await fetch(url, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        const likeBtn = document.getElementById(`like-btn-${id}`);
+        const likeIcon = likeBtn.querySelector('i');
+        const likeCount = document.getElementById(`like-count-${id}`);
+        if (data.is_liked) {
+          likeIcon.style.color = '#ff4d4f';
+        } else {
+          likeIcon.style.color = '#6b7280';
+        }
+        // 使用后端返回的真实点赞数
+        likeCount.textContent = data.like_count;
+      }
+    }
+    
+    async function toggleCollect(id) {
+      const res = await fetch(`/collects/post/${id}`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        const collectBtn = document.getElementById(`collect-btn-${id}`);
+        const collectIcon = collectBtn.querySelector('i');
+        const collectCount = document.getElementById(`collect-count-${id}`);
+        if (data.is_collected) {
+          collectIcon.style.color = '#ff4d4f';
+          collectCount.textContent = parseInt(collectCount.textContent) + 1;
+        } else {
+          collectIcon.style.color = '#6b7280';
+          collectCount.textContent = parseInt(collectCount.textContent) - 1;
+        }
+      }
+    }
+
+    function performSearch() {
+      const searchInput = document.getElementById('search-input');
+      const searchTerm = searchInput.value.trim();
+      if (searchTerm) {
+        // 跳转到搜索结果页面，携带搜索关键词
+        window.location.href = `/posts?keyword=${encodeURIComponent(searchTerm)}`;
+      }
+    }
+
+  </script>
+
+  <!-- 图片查看模态框 -->
+  <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+    <div class="relative max-w-[90%] max-h-[90%]">
+      <img id="modal-image" src="" alt="预览图片" class="max-w-full max-h-[80vh] object-contain">
+      <button id="close-modal" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">×</button>
+    </div>
+  </div>
+
+  <script>
+    // 图片查看功能
+    function viewImage(imageUrl) {
+      const imageModal = document.getElementById('image-modal');
+      const modalImage = document.getElementById('modal-image');
+      modalImage.src = imageUrl;
+      imageModal.classList.remove('hidden');
+    }
+
+    // 关闭模态框
+    document.getElementById('close-modal').addEventListener('click', function() {
+      document.getElementById('image-modal').classList.add('hidden');
+    });
+
+    // 点击模态框背景关闭
+    document.getElementById('image-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.add('hidden');
+      }
+    });
+
+    // 按ESC键关闭模态框
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !document.getElementById('image-modal').classList.contains('hidden')) {
+        document.getElementById('image-modal').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+
+</html>

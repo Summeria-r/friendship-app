@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>匹配中心</title>
+  <link rel="stylesheet" href="../static/css/match_center.css">
+</head>
+
+<body>
+  <div class="card">
+    <h1 class="main-title">寻找长期搭子</h1>
+    <p class="sub-title">选择你想一起做的事</p>
+
+    <select class="select-input match-type" id="longMatchType">
+      <option value="">请选择活动</option>
+      <option value="1">看剧</option>
+      <option value="2">听歌</option>
+      <option value="3">拍照</option>
+      <option value="4">美食</option>
+      <option value="5">旅行</option>
+      <option value="6">运动</option>
+      <option value="7">画画</option>
+      <option value="8">游戏</option>
+      <option value="9">考研</option>
+      <option value="10">考公</option>
+      <option value="11">四级</option>
+      <option value="12">六级</option>
+      <option value="13">考编</option>
+    </select>
+
+    <button class="match-btn match-button" disabled id="longMatchBtn">开始匹配</button>
+  </div>
+  <!-- 现在 -->
+  <div class="card">
+    <h1 class="main-title">寻找现在就开始的搭子</h1>
+    <p class="sub-title">选择你想一起做的事</p>
+
+    <select class="select-input match-type" id="instantMatchType">
+      <option value="">请选择活动</option>
+      <option value="1">看剧</option>
+      <option value="2">听歌</option>
+      <option value="3">拍照</option>
+      <option value="4">美食</option>
+      <option value="5">旅行</option>
+      <option value="6">运动</option>
+      <option value="7">画画</option>
+      <option value="8">游戏</option>
+      <option value="9">学习</option>
+    </select>
+
+    <button class="match-btn match-button" disabled id="instantMatchBtn">开始匹配</button>
+  </div>
+
+  <script>
+    // 获取所有下拉框和按钮
+    const longMatchType = document.getElementById('longMatchType');
+    const longMatchBtn = document.getElementById('longMatchBtn');
+    const instantMatchType = document.getElementById('instantMatchType');
+    const instantMatchBtn = document.getElementById('instantMatchBtn');
+    
+    // 给每一个下拉框绑定切换按钮禁用逻辑
+    longMatchType.addEventListener('change', function () {
+      if (this.value) {
+        longMatchBtn.disabled = false;
+      } else {
+        longMatchBtn.disabled = true;
+      }
+    });
+    
+    instantMatchType.addEventListener('change', function () {
+      if (this.value) {
+        instantMatchBtn.disabled = false;
+      } else {
+        instantMatchBtn.disabled = true;
+      }
+    });
+    
+    // 匹配状态管理
+    let isMatching = false;
+    let currentInterestId = null;
+    let matchType = '';
+    
+    // 5秒定时器：轮询检测匹配状态
+    let checkTimer = null;
+    
+    // 开始匹配
+    async function startMatching(interestId, type) {
+      isMatching = true;
+      currentInterestId = interestId;
+      matchType = type;
+      
+      // 发起匹配请求
+      try {
+        const url = type === 'long' ? '/long_match/request' : '/instant_match';
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: `interest_id=${interestId}`
+        });
+        
+        if (!response.ok) {
+          throw new Error('发起匹配请求失败');
+        }
+        
+        const result = await response.json();
+        if (result.message) {
+          alert(result.message);
+          // 跳转到匹配记录页面
+          window.location.href = '/match_record';
+          isMatching = false;
+        } else if (result.status === 'success') {
+          alert(result.message + '，搭子：' + result.data.partner_nickname);
+          // 跳转到匹配记录页面
+          window.location.href = '/match_record';
+          isMatching = false;
+        } else if (result.status === 'matching' || !result.status) {
+          alert('已进入匹配队列，正在每隔5秒帮你寻找搭子~');
+          // 开始轮询检测
+          startCheckTimer();
+        } else if (result.error) {
+          alert(result.error);
+          isMatching = false;
+        }
+      } catch (error) {
+        alert('发起匹配请求失败，请稍后重试');
+        console.error('发起匹配请求失败:', error);
+        isMatching = false;
+      }
+    }
+    
+    // 开始轮询检测
+    function startCheckTimer() {
+      // 清除之前的定时器
+      if (checkTimer) {
+        clearInterval(checkTimer);
+      }
+      
+      // 每5秒检测一次
+      checkTimer = setInterval(async function () {
+        if (!isMatching || !currentInterestId) return;
+        
+        console.log('检测匹配状态...');
+        
+        try {
+          // 调用后端接口检查匹配状态
+          const response = await fetch('/check_match_status', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `interest_id=${currentInterestId}&match_type=${matchType}`
+          });
+          
+          if (!response.ok) {
+            throw new Error('检查匹配状态失败');
+          }
+          
+          const result = await response.json();
+          if (result.status === 'matched') {
+            // 匹配成功
+            alert('匹配成功！搭子：' + result.partner_nickname);
+            // 跳转到匹配记录页面
+            window.location.href = '/match_record';
+            // 停止轮询
+            stopCheckTimer();
+            isMatching = false;
+          } else if (result.status === 'expired') {
+            // 匹配过期
+            alert('匹配已过期，请重新发起匹配');
+            // 停止轮询
+            stopCheckTimer();
+            isMatching = false;
+          }
+        } catch (error) {
+          console.error('检查匹配状态失败:', error);
+        }
+      }, 5000);
+    }
+    
+    // 停止轮询检测
+    function stopCheckTimer() {
+      if (checkTimer) {
+        clearInterval(checkTimer);
+        checkTimer = null;
+      }
+    }
+    
+    // 长期匹配按钮点击事件
+    longMatchBtn.addEventListener('click', function () {
+      const interestId = longMatchType.value;
+      if (!interestId) return;
+      startMatching(interestId, 'long');
+    });
+    
+    // 即时匹配按钮点击事件
+    instantMatchBtn.addEventListener('click', function () {
+      const interestId = instantMatchType.value;
+      if (!interestId) return;
+      startMatching(interestId, 'instant');
+    });
+    
+    // 页面离开清除定时器防止内存泄漏
+    window.addEventListener('beforeunload', () => {
+      stopCheckTimer();
+    });
+  </script>
+</body>
+
+</html>

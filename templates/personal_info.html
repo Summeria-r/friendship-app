@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <title>个人资料</title>
+  <link rel="stylesheet" href="../static/css/personal_info.css">
+  <style>
+    .error-message {
+      background-color: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      color: #dc2626;
+      font-size: 14px;
+      text-align: center;
+    }
+    
+    .success-message {
+      background-color: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+      color: #16a34a;
+      font-size: 14px;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+    <h2 class="title">Edit Profile</h2>
+    <p class="subtitle">填写你的小资料 ✧˖°</p>
+    
+    <!-- 错误信息显示 -->
+    {% if error %}
+    <div class="error-message">
+      {{ error }}
+    </div>
+    {% endif %}
+    
+    <!-- 成功信息显示 -->
+    {% if success %}
+    <div class="success-message">
+      {{ success }}
+    </div>
+    {% endif %}
+
+    <form id="profileForm" method="post" action="/save_personal_info">
+
+      <div class="form-group">
+        <label>昵称</label>
+        <input type="text" id="nickname" name="nickname" placeholder="怎么称呼你？" required value="{{ nickname if nickname else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label>性别</label>
+        <div class="radio-group">
+          <label><input type="radio" name="gender" value="女生" {% if gender == '女生' %}checked{% endif %}> 女生</label>
+          <label><input type="radio" name="gender" value="男生" {% if gender == '男生' %}checked{% endif %}> 男生</label>
+          <label><input type="radio" name="gender" value="保密" {% if gender == '保密' %}checked{% endif %}> 保密</label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>生日</label>
+        <input type="date" id="birthday" name="birthday" value="{{ birthday if birthday else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label>个性签名</label>
+        <textarea id="bio" name="bio" placeholder="随便写点什么～">{{ bio if bio else '' }}</textarea>
+      </div>
+
+      <!-- 加 -->
+      <div class="form-group">
+        <label>学号</label>
+        <input type="text" id="student_id" name="student_id" placeholder="请输入学号" required value="{{ student_id if student_id else '' }}">
+      </div>
+      <div class="form-group">
+        <label>学院</label>
+        <input type="text" id="department" name="department" placeholder="请输入学院" required value="{{ department if department else '' }}">
+      </div>
+      <div class="form-group">
+        <label>专业</label>
+        <input type="text" id="major" name="major" placeholder="请输入专业" required value="{{ major if major else '' }}">
+      </div>
+      <div class="form-group">
+        <label>联系电话</label>
+        <input type="text" id="phone" name="phone" placeholder="请输入联系电话" required value="{{ phone if phone else '' }}">
+      </div>
+
+      <div class="form-group">
+        <label>兴趣爱好 <span class="required">*</span></label>
+        <div class="hobby-group" id="hobbyGroup">
+          <label><input type="checkbox" name="hobby" value="THEATER" {% if interest_names and 'THEATER' in interest_names %}checked{% endif %}> 看剧</label>
+          <label><input type="checkbox" name="hobby" value="MUSIC" {% if interest_names and 'MUSIC' in interest_names %}checked{% endif %}> 听歌</label>
+          <label><input type="checkbox" name="hobby" value="PHOTO" {% if interest_names and 'PHOTO' in interest_names %}checked{% endif %}> 拍照</label>
+          <label><input type="checkbox" name="hobby" value="FOOD" {% if interest_names and 'FOOD' in interest_names %}checked{% endif %}> 美食</label>
+          <label><input type="checkbox" name="hobby" value="TRAVEL" {% if interest_names and 'TRAVEL' in interest_names %}checked{% endif %}> 旅行</label>
+          <label><input type="checkbox" name="hobby" value="SPORTS" {% if interest_names and 'SPORTS' in interest_names %}checked{% endif %}> 运动</label>
+          <label><input type="checkbox" name="hobby" value="DRAW" {% if interest_names and 'DRAW' in interest_names %}checked{% endif %}> 画画</label>  
+          <label><input type="checkbox" name="hobby" value="GAME" {% if interest_names and 'GAME' in interest_names %}checked{% endif %}> 游戏</label>
+          <label><input type="checkbox" name="hobby" value="GRADUATE" {% if interest_names and 'GRADUATE' in interest_names %}checked{% endif %}> 考研</label>
+          <label><input type="checkbox" name="hobby" value="EXAM" {% if interest_names and 'EXAM' in interest_names %}checked{% endif %}> 考公</label>
+          <label><input type="checkbox" name="hobby" value="FOUR" {% if interest_names and 'FOUR' in interest_names %}checked{% endif %}> 四级</label>
+          <label><input type="checkbox" name="hobby" value="SIX" {% if interest_names and 'SIX' in interest_names %}checked{% endif %}> 六级</label>
+          <label><input type="checkbox" name="hobby" value="CODE" {% if interest_names and 'CODE' in interest_names %}checked{% endif %}> 考编</label>
+        </div>
+        <input type="hidden" id="interest_names" name="interest_names" value="">
+      </div>
+
+      <button type="submit" class="submit-btn">保存资料</button>
+    </form>
+  </div>
+
+  <script>
+    const form = document.getElementById('profileForm');
+
+    form.addEventListener('submit', function (e) {
+      const hobbies = document.querySelectorAll('input[name="hobby"]:checked');
+      if (hobbies.length === 0) {
+        alert('请至少选择一个兴趣爱好哦～');
+        e.preventDefault();
+        return;
+      }
+      
+      // 将选中的兴趣名称转换为逗号分隔的字符串
+      const interestNames = Array.from(hobbies).map(hobby => hobby.value).join(',');
+      document.getElementById('interest_names').value = interestNames;
+    });
+  </script>
+</body>
+
+</html>

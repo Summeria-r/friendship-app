@@ -1,0 +1,140 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #ffffff;
+  font-family: "微软雅黑", sans-serif;
+}
+
+.notice-wrap {
+  max-width: 600px;
+  margin: 0 auto;
+  background: #fff;
+  min-height: 100vh;
+  border: 1px solid #eee;
+  /* 外层整体边框 */
+  border-radius: 12px;
+  /* 圆角好看不生硬 */
+  overflow: hidden;
+  /* 内容不超出圆角 */
+}
+
+.notice-item:last-child {
+  border-bottom: none;
+  /* 最后一条消息不要底边，避免叠线 */
+}
+
+.notice-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #eee;
+  position: sticky;
+  top: 0;
+  background: #fff;
+}
+
+.notice-header h2 {
+  font-size: 20px;
+  color: #333;
+}
+
+.read-all {
+  background: #f5f5f5;
+  color: #333;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.read-all:hover {
+  background: #eaeaea;
+}
+
+/* 单条消息项 */
+.notice-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 15px 20px;
+  border-bottom: 1px solid #f8f8f8;
+  position: relative;
+  background: #fff;
+}
+
+.notice-item.unread {
+  background: #fafafa;
+}
+
+.avatar img {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.notice-body {
+  flex: 1;
+}
+
+.notice-text {
+  line-height: 1.6;
+}
+
+.name {
+  font-weight: bold;
+  color: #222;
+}
+
+.action {
+  color: #666;
+  margin: 0 4px;
+}
+
+.post-name {
+  color: #666;
+}
+
+.reply-content {
+  background: #f7f7f7;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #555;
+  margin: 6px 0;
+}
+
+.notice-time {
+  font-size: 12px;
+  color: #aaa;
+}
+
+/* 图标颜色保留区分，不影响白色主题 */
+.like-icon {
+  color: #ff6b81;
+}
+
+.comment-icon {
+  color: #74b9ff;
+}
+
+.collect-icon {
+  color: #ffc107;
+}
+
+/* 未读小红点 */
+.dot {
+  width: 8px;
+  height: 8px;
+  background: #ff4444;
+  border-radius: 50%;
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+}

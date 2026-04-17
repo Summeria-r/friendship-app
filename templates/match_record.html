@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>我的匹配记录</title>
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+body{
+    background:#F2F7FA;
+    padding:20px 15px;
+    max-width:600px;
+    margin:0 auto;
+}
+.title{
+    font-size:24px;
+    font-weight:600;
+    margin-bottom:24px;
+    color:#2A3B4C;
+    text-align:center;
+}
+/* 卡片 */
+.item{
+    background:#ffffff;
+    border-radius:16px;
+    padding:20px;
+    margin-bottom:14px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.04);
+    position:relative;
+}
+/* 行 */
+.row{
+    display:flex;
+    margin-bottom:11px;
+    font-size:15px;
+}
+.row:last-child{
+    margin-bottom:0;
+}
+.label{
+    width:90px;
+    color:#6B7A90;
+    flex-shrink:0;
+}
+.value{
+    color:#2A3B4C;
+    font-weight:500;
+}
+/* 状态颜色（高级柔和版） */
+.status-matching{
+    color:#77c0f1;
+    font-weight:600;
+}
+.status-success{
+    color:#9beebc;
+    font-weight:600;
+}
+.status-expired{
+    color:#ff7f7f;
+    font-weight:600;
+}
+/* 取消按钮 */
+.cancel-btn{
+    position:absolute;
+    right:20px;
+    top:20px;
+    background:#ebd1d1;
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:7px 14px;
+    font-size:13px;
+    font-weight:500;
+    cursor:pointer;
+    transition:0.2s;
+}
+.cancel-btn:hover{
+    background:#E24444;
+}
+.cancel-btn:disabled{
+    background:#D0D8E2;
+    cursor:not-allowed;
+}
+.empty{
+    text-align:center;
+    padding:70px 20px;
+    color:#98A2B0;
+    font-size:15px;
+}
+.loading{
+    text-align:center;
+    padding:70px 20px;
+    color:#98A2B0;
+    font-size:15px;
+}
+.error-message{
+    text-align:center;
+    padding:20px;
+    color:#E24444;
+    font-size:15px;
+    background:#FEF2F2;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+.success-message{
+    text-align:center;
+    padding:20px;
+    color:#16a34a;
+    font-size:15px;
+    background:#f0fdf4;
+    border-radius:10px;
+    margin-bottom:20px;
+}
+</style>
+</head>
+<body>
+<div class="title">我的匹配记录</div>
+
+<!-- 消息显示 -->
+{% if error %}
+<div class="error-message">{{ error }}</div>
+{% endif %}
+
+{% if success %}
+<div class="success-message">{{ success }}</div>
+{% endif %}
+
+<div id="list">
+    {% if records %}
+        {% for record in records %}
+        <div class="item" data-id="{{ record.id }}">
+            <button class="cancel-btn" {% if record.status != "匹配中" %}disabled{% endif %} onclick="cancel({{ record.id }})">
+                {{ "取消匹配" if record.status == "匹配中" else "不可操作" }}
+            </button>
+
+            <div class="row">
+                <div class="label">匹配编号：</div>
+                <div class="value">{{ record.match_id }}</div>
+            </div>
+            <div class="row">
+                <div class="label">用户昵称：</div>
+                <div class="value">{{ record.nickname }}</div>
+            </div>
+            <div class="row">
+                <div class="label">兴趣标签：</div>
+                <div class="value">{{ record.interest }}</div>
+            </div>
+            <div class="row">
+                <div class="label">匹配类型：</div>
+                <div class="value">{{ record.match_type }}</div>
+            </div>
+            <div class="row">
+                <div class="label">当前状态：</div>
+                <div class="value {% if record.status == "匹配中" %}status-matching{% elif record.status == "已匹配" %}status-success{% else %}status-expired{% endif %}">{{ record.status }}</div>
+            </div>
+            <div class="row">
+                <div class="label">匹配对象：</div>
+                <div class="value">{{ record.partner_nickname or "暂无" }}</div>
+            </div>
+            <div class="row">
+                <div class="label">创建时间：</div>
+                <div class="value">{{ record.create_time }}</div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty">您还没有匹配记录</div>
+    {% endif %}
+</div>
+
+<script>
+// 取消匹配
+async function cancel(id) {
+    if(!confirm("确定取消该匹配？")) return;
+    
+    try {
+        const response = await fetch('/match_record/cancel', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: `id=${id}`
+        });
+        
+        if (!response.ok) {
+            throw new Error('取消匹配失败');
+        }
+        
+        const result = await response.json();
+        if (result.message) {
+            // 刷新页面，显示成功消息
+            window.location.href = `/match_record?success=${encodeURIComponent(result.message)}`;
+        } else if (result.error) {
+            // 刷新页面，显示错误消息
+            window.location.href = `/match_record?error=${encodeURIComponent(result.error)}`;
+        }
+    } catch (error) {
+        alert('取消匹配失败，请稍后重试');
+        console.error('取消匹配失败:', error);
+    }
+}
+</script>
+</body>
+</html>

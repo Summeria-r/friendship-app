@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>消息通知</title>
+  <link rel="stylesheet" href="/static/css/post_message.css">
+  <!-- Font Awesome图标 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
+</head>
+
+<body>
+  {% include 'common.html' %}
+
+  <div class="notice-wrap">
+    <div class="notice-header">
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="/personal/center" style="color: #666;"><i class="fa fa-arrow-left"></i></a>
+        <h2>消息通知</h2>
+      </div>
+      <form action="/notifications/read-all" method="POST">
+        <button type="submit" class="read-all">全部已读</button>
+      </form>
+    </div>
+
+    {% for notification in notifications %}
+    <div class="notice-item {% if not notification.is_read %}unread{% endif %}" onclick="window.location.href='/posts/{{ notification.post_id }}'" style="cursor: pointer;">
+      <div class="avatar">
+        <img src="{{ notification.sender.avatar or 'https://api.dicebear.com/7.x/avataaars/svg?seed=' + notification.sender.username }}">
+      </div>
+      <div class="notice-body">
+        <div class="notice-text">
+          <span class="name">{{ notification.sender.nickname }}</span>
+          <span class="action">
+            {% if notification.type == 'post_like' %}
+            <i class="fa fa-heart like-icon"></i> 赞了你的帖子
+            {% elif notification.type == 'post_comment' %}
+            <i class="fa fa-comment comment-icon"></i> 评论了你的帖子
+            {% elif notification.type == 'post_collect' %}
+            <i class="fa fa-star collect-icon"></i> 收藏了你的帖子
+            {% elif notification.type == 'comment_reply' %}
+            <i class="fa fa-comment comment-icon"></i> 回复了你的评论
+            {% endif %}
+          </span>
+          <span class="post-name">《{{ notification.post.title if notification.post else '原帖已删除' }}》</span>
+        </div>
+        {% if notification.type in ['post_comment', 'comment_reply'] %}
+        <div class="reply-content">{{ notification.content }}</div>
+        {% endif %}
+        <div class="notice-time">{{ notification.created_at.strftime('%m-%d %H:%M') }}</div>
+      </div>
+      {% if not notification.is_read %}<span class="dot"></span>{% endif %}
+    </div>
+    {% endfor %}
+
+    {% if not notifications %}
+    <div style="text-align: center; padding: 40px; color: #999;">暂无消息通知</div>
+    {% endif %}
+
+  </div>
+
+  <script>
+    // 全部已读按钮功能 (改为表单提交，后端处理)
+  </script>
+</body>
+
+</html>

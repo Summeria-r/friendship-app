@@ -1,0 +1,549 @@
+/* 全局 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: #f9fafb;
+  color: #111827;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+
+/* 轮播 */
+.carousel-wrapper {
+  position: relative;
+  width: 100%;
+  height: 225px;
+  overflow: hidden;
+  background: #e5e7eb;
+  margin-top: 4px;
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+  opacity: 0;
+  transition: opacity 0.5s;
+}
+
+.carousel-item.active {
+  opacity: 1;
+}
+
+.carousel-item:nth-child(1) {
+  background: linear-gradient(to right, #3B82F6, #4F46E5);
+}
+
+.carousel-item:nth-child(2) {
+  background: linear-gradient(to right, #EC4899, #F59E0B);
+}
+
+.carousel-item:nth-child(3) {
+  background: linear-gradient(to right, #10B981, #3B82F6);
+}
+
+.carousel-content {
+  /* position: relative; */
+  padding: 0 16px;
+}
+
+.carousel-content h2 {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  /* top: 40px; */
+}
+
+.carousel-content p {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.btn-white {
+  padding: 8px 20px;
+  background: white;
+  color: #4F46E5;
+  border: none;
+  border-radius: 999px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.indicators {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: white;
+  opacity: 0.5;
+}
+
+.indicator.active {
+  opacity: 1;
+}
+
+/* 标题 */
+.section-title {
+  font-size: 22px;
+  font-weight: bold;
+  text-align: center;
+  margin: 32px 0;
+}
+
+/* 分类 */
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+  .category-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+}
+
+.category-card {
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s;
+}
+
+.category-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.category-card i {
+  font-size: 28px;
+  margin-bottom: 10px;
+}
+
+.category-card h3 {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.category-card p {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.blue {
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+}
+
+.blue i {
+  color: #3B82F6;
+}
+
+.orange {
+  background: #fff7ed;
+  border: 1px solid #fed7aa;
+}
+
+.orange i {
+  color: #F59E0B;
+}
+
+.pink {
+  background: #fdf2f8;
+  border: 1px solid #fbcfe8;
+}
+
+.pink i {
+  color: #EC4899;
+}
+
+.green {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.green i {
+  color: #10B981;
+}
+
+/* 匹配按钮 */
+.match-container {
+  position: relative;
+  top: 80px;
+  left: 50%;
+  margin-bottom: 40px;
+  transform: translate(-50%, -50%);
+  display: flex;
+  justify-content: center;
+  background: #d888a8;
+  /* 按钮底色，和粉色风格匹配 */
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 16px;
+  width: 140px;
+  height: 140px;
+  cursor: pointer;
+  outline: none;
+  box-shadow:
+    0 0 0 0 rgba(255, 182, 193, 0.7),
+    0 0 0 0 rgba(255, 150, 170, 0.5),
+    0 0 0 0 rgba(255, 120, 150, 0.3);
+  animation: pink-pulse 2.5s infinite ease-out;
+}
+
+@keyframes pink-pulse {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(255, 182, 193, 0.7),
+      0 0 0 0 rgba(255, 150, 170, 0.5),
+      0 0 0 0 rgba(255, 120, 150, 0.3);
+  }
+
+  70% {
+    box-shadow:
+      0 0 0 20px rgba(255, 182, 193, 0),
+      0 0 0 40px rgba(255, 150, 170, 0),
+      0 0 0 60px rgba(255, 120, 150, 0);
+  }
+
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(255, 182, 193, 0),
+      0 0 0 0 rgba(255, 150, 170, 0),
+      0 0 0 0 rgba(255, 120, 150, 0);
+  }
+}
+
+.match-btn {
+  width: 144px;
+  height: 144px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #e8c1cc, #d8a6b8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  font-weight: bold;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.match-btn:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #d8a6b8, #c98ca5);
+}
+
+/* 帖子 */
+.post-list-wrapper {
+  padding-bottom: 48px;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.post-header h2 {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.post-header span {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.post-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.post-item {
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s;
+}
+
+.post-item:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.post-title-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.post-title-row span:first-child {
+  font-weight: 500;
+}
+
+.post-title-row span:last-child {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.post-item p {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 12px;
+}
+
+.tag {
+  font-size: 12px;
+}
+
+.learning {
+  color: #10B981;
+}
+
+.game {
+  color: #3B82F6;
+}
+
+.interest {
+  color: #EC4899;
+}
+
+/* 发帖按钮 */
+.post-btn {
+  /* padding: 8px 16px; */
+  background: linear-gradient(to right, #4F46E5, #EC4899);
+  /* background: linear-gradient(135deg, #10B981, #3B82F6); */
+  /* background: linear-gradient(135deg, #1F2937, #4F46E5); */
+  color: white;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+  /* display: inline-flex; */
+  width: 144px;
+  height: 48px;
+  line-height: 48px;
+  margin: 0 auto;
+  text-align: center;
+  margin-top: 20px;
+  transition: transform 0.5s;
+}
+
+.post-btn a {
+  color: white;
+}
+
+.post-btn:hover {
+  transform: scale(1.2);
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.4);
+  /* color: white; */
+}
+
+.footer {
+  height: 460px;
+  background: linear-gradient(135deg, #fff, #fde8f1);
+  margin-top: 20px;
+  border-radius: 10px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.footer-desc {
+  font-family: "ZCOOL KuaiLe", "Ma Shan Zheng", cursive;
+  font-size: 22px;
+  font-weight: 500;
+  color: #fcc0f8;
+
+
+}
+
+.footer-top {
+  height: 80px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+}
+
+.line {
+  width: 100%;
+  height: 1px;
+  background-color: #f8e8ef;
+  border-radius: 5px;
+}
+
+.footer-body {
+  width: 100%;
+  height: 300px;
+  padding: 10px 20px;
+}
+
+.footer-body-left {
+  height: 300px;
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+
+.your-account {
+  height: 300px;
+  /* width: 50%; */
+  text-align: center;
+}
+
+.your-account h3 {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #333333;
+}
+
+.your-account ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* color: #333; */
+}
+
+.your-account ul li a {
+  color: #666666;
+  font-size: 16px;
+}
+
+.your-account ul li a:hover {
+  color: #CCCCCC;
+  transition: color 0.1s;
+
+}
+
+.Friendship {
+  height: 300px;
+  /* width: 50%; */
+  text-align: center;
+}
+
+.Friendship h3 {
+  font-size: 22px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  color: #333333;
+}
+
+.Friendship ul {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* color: #333; */
+}
+
+.Friendship ul li a {
+  /* color: #333; */
+  font-size: 16px;
+  color: #666666;
+}
+
+.Friendship ul li a:hover {
+  color: #CCCCCC;
+  transition: color 0.1s;
+
+}
+
+.follow-us h3 {
+  font-size: 22px;
+  font-weight: 500;
+
+  color: #333333;
+  margin-bottom: 10px;
+}
+
+.follow-us ul {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+
+
+.follow-us ul li a {
+  font-size: 16px;
+  color: #666666;
+
+}
+
+.follow-us ul li a:hover {
+  color: #CCCCCC;
+  transition: color 0.1s;
+}
+
+.iconfont {
+  font-size: 30px !important;
+  margin-right: 5px;
+}
+
+
+
+.icon-weixin {
+  color: #07c160;
+}
+
+.icon-weibo {
+  color: #E6162D;
+}
+
+.icon-kuaishou {
+  color: #F59E0B;
+}
+
+.icon-douyinzhanghao {
+  color: #000000;
+}
+
+.icon-xiaohongshu {
+  color: #FF4D4F;
+}
+
+.footer-bottom {
+  height: 80px;
+  text-align: center;
+  color: #666666;
+  padding: 10px 20px;
+
+
+}

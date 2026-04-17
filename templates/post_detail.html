@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>帖子详情 - {{ post.title }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/base.css">
+  <link rel="stylesheet" href="/static/css/common.css">
+  <link rel="stylesheet" href="/static/iconfont3/iconfont.css">
+  <style>
+    .post-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .post-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    }
+    .comment-card {
+      transition: background-color 0.2s ease;
+    }
+    .comment-card:hover {
+      background-color: #f9fafb;
+    }
+    .btn-hover {
+      transition: all 0.2s ease;
+    }
+    .btn-hover:hover {
+      transform: translateY(-1px);
+    }
+    .tag {
+      transition: all 0.2s ease;
+    }
+    .tag:hover {
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+
+<body class="bg-gray-50">
+  {% include 'common.html' %}
+
+  <div class="container mx-auto px-4 py-6 max-w-4xl">
+    <!-- 帖子卡片 -->
+    <div class="bg-white rounded-xl shadow-md border border-gray-100 mb-6 post-card overflow-hidden">
+      <!-- 帖子头部 -->
+      <div class="p-5 border-b border-gray-100">
+        <div class="flex items-center">
+          <img src="{{ post.user.avatar or 'https://a0ai.marscode.cn/api/ide/v1/text_to_image?prompt=user%20avatar%20portrait%20friendly%20college%20student%20professional&image_size=square' }}" alt="用户头像" class="w-14 h-14 rounded-full object-cover border-2 border-indigo-100">
+          <div class="ml-4">
+            <div class="flex items-center">
+              <h3 class="font-semibold text-gray-900 text-lg">{{ post.user.nickname }}</h3>
+              <span class="ml-2 px-2 py-0.5 bg-indigo-100 text-indigo-800 rounded-full text-xs font-medium">{{ post.user.department or '校友' }}</span>
+            </div>
+            <p class="text-sm text-gray-500 mt-1">{{ post.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 帖子内容 -->
+      <div class="p-5">
+        <h2 class="text-2xl font-bold text-gray-900 mb-4 leading-tight">{{ post.title }}</h2>
+        <div class="text-gray-700 mb-6 leading-relaxed whitespace-pre-wrap">{{ post.content }}</div>
+        
+        <!-- 帖子图片 -->
+        {% if post.image_urls and post.image_urls|length > 0 %}
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+          {% for image_url in post.image_urls %}
+          <div class="relative overflow-hidden rounded-lg shadow-sm flex items-center justify-center" style="min-height: 200px; background-color: #f3f4f6;">
+            <img src="{{ image_url }}" alt="帖子图片" class="max-w-full max-h-64 object-contain transition-transform duration-300 hover:scale-105 cursor-pointer" onclick="viewImage('{{ image_url }}')">
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+      <!-- 帖子互动栏 -->
+      <div class="p-5 border-t border-gray-100 flex justify-between items-center bg-gray-50">
+        <div class="flex items-center space-x-8">
+          <button id="like-btn-{{ post.id }}" onclick="toggleLike('post', {{ post.id }})" class="flex items-center text-gray-500 hover:text-indigo-600 transition-colors btn-hover">
+            <i class="iconfont icon-dianzan mr-2 text-lg"></i>
+            <span id="like-count-{{ post.id }}" class="font-medium">{{ post.like_count }}</span>
+          </button>
+          <button class="flex items-center text-gray-500 hover:text-indigo-600 transition-colors btn-hover">
+            <i class="iconfont icon-pinglun mr-2 text-lg"></i>
+            <span class="font-medium">{{ post.comment_count }}</span>
+          </button>
+          <button id="collect-btn-{{ post.id }}" onclick="toggleCollect({{ post.id }})" class="flex items-center text-gray-500 hover:text-indigo-600 transition-colors btn-hover">
+            <i class="iconfont icon-shoucang mr-2 text-lg"></i>
+            <span id="collect-count-{{ post.id }}" class="font-medium">{{ post.collect_count }}</span>
+          </button>
+        </div>
+        <button class="flex items-center text-gray-500 hover:text-indigo-600 transition-colors btn-hover">
+          <i class="fa fa-share-alt mr-2 text-lg"></i>
+          <span class="font-medium">分享</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 评论区 -->
+    <div class="bg-white rounded-xl shadow-md border border-gray-100">
+      <!-- 评论区头部 -->
+      <div class="p-5 border-b border-gray-100">
+        <h3 class="font-semibold text-gray-900 text-lg">评论 ({{ post.comment_count }})</h3>
+      </div>
+
+      <!-- 发表评论 -->
+      <div class="p-5 border-b border-gray-100">
+        <form action="/comments/create/{{ post.id }}" method="POST" class="flex">
+          <img src="{{ request.session.get('user', {}).get('avatar') or '/static/images/默认头像.jpg' }}" alt="用户头像" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+          <div class="ml-4 flex-1">
+            <div class="relative">
+              <textarea name="content" id="comment-input" class="w-full border border-gray-200 rounded-xl p-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none transition-all duration-200" rows="1" placeholder="写下你的评论..."></textarea>
+              <div id="comment-actions" class="hidden mt-3 flex justify-end items-center">
+                <button type="submit" class="px-6 py-2 bg-indigo-500 text-white rounded-lg hover:bg-indigo-600 transition-colors btn-hover font-medium">
+                  发表评论
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- 评论列表 -->
+      <div class="p-5 space-y-6">
+        {% for comment in comments %}
+        <div class="flex comment-card p-4 rounded-lg">
+          <a href="/to_chat/{{ comment.user.id }}" style="cursor: pointer;">
+            <img src="{{ comment.user.avatar or 'https://a0ai.marscode.cn/api/ide/v1/text_to_image?prompt=user%20avatar%20portrait%20friendly%20college%20student%20female%20professional&image_size=square' }}" alt="用户头像" class="w-12 h-12 rounded-full object-cover border border-gray-200">
+          </a>
+          <div class="ml-4 flex-1">
+            <div class="flex justify-between items-center">
+              <div>
+                <a href="/to_chat/{{ comment.user.id }}" style="cursor: pointer;">
+                  <h4 class="font-medium text-gray-900">{{ comment.user.nickname }}</h4>
+                </a>
+                <span class="text-xs text-gray-500">{{ comment.user.major or '同学' }}</span>
+              </div>
+              <span class="text-sm text-gray-500">{{ comment.created_at.strftime('%m-%d %H:%M') }}</span>
+            </div>
+            <p class="text-gray-700 mt-2 leading-relaxed">{{ comment.content }}</p>
+            <div class="flex items-center mt-3 text-sm">
+              <button id="like-btn-comment-{{ comment.id }}" onclick="toggleLike('comment', {{ comment.id }})" class="text-gray-500 hover:text-indigo-600 mr-6 flex items-center btn-hover">
+                <i class="iconfont icon-dianzan mr-1"></i>
+                <span id="like-count-comment-{{ comment.id }}">{{ comment.like_count }}</span>
+              </button>
+              <button onclick="showReplyInput({{ comment.id }})" class="text-gray-500 hover:text-indigo-600 flex items-center btn-hover">
+                <i class="iconfont icon-pinglun mr-1"></i>
+                <span>回复</span>
+              </button>
+            </div>
+            
+            <!-- 子回复 -->
+            {% if comment.replies %}
+            <div class="mt-3 ml-4 pl-4 border-l-2 border-gray-100 space-y-3">
+              {% for reply in comment.replies %}
+              <div class="flex">
+                <img src="{{ reply.user.avatar or 'https://a0ai.marscode.cn/api/ide/v1/text_to_image?prompt=user%20avatar%20portrait%20friendly%20college%20student%20professional&image_size=square' }}" alt="用户头像" class="w-8 h-8 rounded-full object-cover">
+                <div class="ml-2 flex-1">
+                  <div class="flex justify-between items-center">
+                    <h5 class="font-medium text-gray-900 text-sm">{{ reply.user.nickname }}</h5>
+                    <span class="text-xs text-gray-500">{{ reply.created_at.strftime('%m-%d %H:%M') }}</span>
+                  </div>
+                  <p class="text-gray-700 mt-1 text-sm">{{ reply.content }}</p>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- 回复框 -->
+            <div id="reply-box-{{ comment.id }}" class="hidden mt-3 ml-4">
+              <form action="/comments/create/{{ post.id }}" method="POST">
+                <input type="hidden" name="parent_id" value="{{ comment.id }}">
+                <textarea name="content" class="w-full border border-gray-200 rounded-lg p-2 text-sm" rows="2" placeholder="回复 {{ comment.user.nickname }}..."></textarea>
+                <div class="flex justify-end mt-2">
+                  <button type="submit" class="px-4 py-1 bg-indigo-500 text-white text-sm rounded">提交</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const commentInput = document.getElementById('comment-input');
+    const commentActions = document.getElementById('comment-actions');
+    commentInput.addEventListener('focus', () => { commentInput.rows = 3; commentActions.classList.remove('hidden'); });
+    
+    function showReplyInput(id) { document.getElementById(`reply-box-${id}`).classList.toggle('hidden'); }
+    
+    async function toggleLike(type, id) {
+      let url = '';
+      if (type === 'post') {
+        url = `/likes/post/${id}`;
+      } else if (type === 'comment') {
+        url = `/likes/comment/${id}`;
+      }
+      const res = await fetch(url, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        if (type === 'post') {
+          const likeBtn = document.getElementById(`like-btn-${id}`);
+          const likeCount = document.getElementById(`like-count-${id}`);
+          if (data.is_liked) {
+            likeBtn.classList.remove('text-gray-500');
+            likeBtn.classList.add('text-red-500');
+          } else {
+            likeBtn.classList.remove('text-red-500');
+            likeBtn.classList.add('text-gray-500');
+          }
+          // 使用后端返回的真实点赞数
+          likeCount.textContent = data.like_count;
+        } else if (type === 'comment') {
+          const likeBtn = document.getElementById(`like-btn-comment-${id}`);
+          const likeCount = document.getElementById(`like-count-comment-${id}`);
+          if (data.is_liked) {
+            likeBtn.classList.remove('text-gray-500');
+            likeBtn.classList.add('text-red-500');
+          } else {
+            likeBtn.classList.remove('text-red-500');
+            likeBtn.classList.add('text-gray-500');
+          }
+          // 使用后端返回的真实点赞数
+          likeCount.textContent = data.like_count;
+        }
+      }
+    }
+    
+    async function toggleCollect(id) {
+      const res = await fetch(`/collects/post/${id}`, { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        const collectBtn = document.getElementById(`collect-btn-${id}`);
+        const collectCount = document.getElementById(`collect-count-${id}`);
+        if (data.is_collected) {
+          collectBtn.classList.remove('text-gray-500');
+          collectBtn.classList.add('text-red-500');
+          collectCount.textContent = parseInt(collectCount.textContent) + 1;
+        } else {
+          collectBtn.classList.remove('text-red-500');
+          collectBtn.classList.add('text-gray-500');
+          collectCount.textContent = parseInt(collectCount.textContent) - 1;
+        }
+      }
+    }
+  </script>
+
+  <!-- 图片查看模态框 -->
+  <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+    <div class="relative max-w-[90%] max-h-[90%]">
+      <img id="modal-image" src="" alt="预览图片" class="max-w-full max-h-[80vh] object-contain">
+      <button id="close-modal" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">×</button>
+    </div>
+  </div>
+
+  <script>
+    // 图片查看功能
+    function viewImage(imageUrl) {
+      const imageModal = document.getElementById('image-modal');
+      const modalImage = document.getElementById('modal-image');
+      modalImage.src = imageUrl;
+      imageModal.classList.remove('hidden');
+    }
+
+    // 关闭模态框
+    document.getElementById('close-modal').addEventListener('click', function() {
+      document.getElementById('image-modal').classList.add('hidden');
+    });
+
+    // 点击模态框背景关闭
+    document.getElementById('image-modal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        this.classList.add('hidden');
+      }
+    });
+
+    // 按ESC键关闭模态框
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !document.getElementById('image-modal').classList.contains('hidden')) {
+        document.getElementById('image-modal').classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+
+</html>

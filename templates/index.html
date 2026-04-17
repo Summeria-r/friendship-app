@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>首页</title>
+  <link rel="stylesheet" href="../static/css/style.css">
+  <link rel="stylesheet" href="../static/css/base.css">
+  <link rel="stylesheet" href="../static/css/common.css">
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../static/iconfont1/iconfont.css">
+
+</head>
+
+<body>
+
+  <!-- 导航 -->
+  <div id="navbar-container"></div>
+
+  <!-- 轮播图 -->
+  <div class="carousel-wrapper">
+    <div class="carousel">
+      <div class="carousel-item active">
+        <div class="carousel-content">
+          <h2>快来加入我们</h2>
+          <p>找到志同道合的伙伴，开启校园新生活</p>
+          <button class="btn-white">立即前往 <i class="fa fa-arrow-right"></i></button>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="carousel-content">
+          <h2>想要拍照搭子吗？</h2>
+          <p>校园打卡、写真约拍，一键匹配同好</p>
+          <button class="btn-white">GO <i class="fa fa-paper-plane"></i></button>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="carousel-content">
+          <h2>比赛组队不发愁</h2>
+          <p>学科竞赛、文体活动，快速找到队友</p>
+          <button class="btn-white">匹配队友 <i class="fa fa-users"></i></button>
+        </div>
+      </div>
+    </div>
+    <div class="indicators">
+      <span class="indicator active"></span>
+      <span class="indicator"></span>
+      <span class="indicator"></span>
+    </div>
+  </div>
+
+  <!-- 分类 -->
+  <div class="container">
+    <h2 class="section-title">校园互助分类</h2>
+    <div class="category-grid">
+      <a href="/posts?category=比赛">
+        <div class="category-card blue">
+          <i class="fa fa-trophy"></i>
+          <h3>比赛组队</h3>
+          <p>学科竞赛、科创比赛找队友</p>
+        </div>
+      </a>
+      <a href="/posts?category=吃饭">
+        <div class="category-card orange">
+          <i class="fa fa-cutlery"></i>
+          <h3>饭搭子</h3>
+          <p>干饭、探店、约饭找同伴</p>
+        </div>
+      </a>
+      <a href="/posts?category=兴趣">
+        <div class="category-card pink">
+          <i class="fa fa-heart"></i>
+          <h3>兴趣搭子</h3>
+          <p>跳舞、运动、拍照等兴趣</p>
+        </div>
+      </a>
+      <a href="/posts?category=学习">
+        <div class="category-card green">
+          <i class="fa fa-book"></i>
+          <h3>学习搭子</h3>
+          <p>自习、考研、考证结伴</p>
+        </div>
+      </a>
+    </div>
+  </div>
+
+  <!-- 匹配按钮 -->
+  <div class="match-container">
+    <a href="/match_center ">
+      <div class="match-btn" id="matchBtn">开始匹配</div>
+    </a>
+  </div>
+
+<!-- 帖子列表 -->
+  <div class="container post-list-wrapper">
+    <div class="post-header">
+      <h2>最新互助帖子</h2>
+      <span>共 {{ posts|length }} 条</span>
+    </div>
+    <div class="post-list">
+      {% for post in posts %}
+      <div class="post-item" onclick="window.location.href='/posts/{{ post.id }}'" style="cursor: pointer;">
+        <div class="post-title-row">
+          <span>{{ post.title }}</span>
+          <span>{{ post.created_at.strftime('%m-%d %H:%M') }}</span>
+        </div>
+        <p>{{ post.content[:100] }}{% if post.content|length > 100 %}...{% endif %}</p>
+        <div class="tag {% if post.category.value == '学习' %}learning{% elif post.category.value == '比赛' %}game{% elif post.category.value == '兴趣' %}interest{% else %}other{% endif %}">{{ post.category.value }}搭子</div>
+      </div>
+      {% endfor %}
+    </div>
+    <!-- 加入发帖按钮 -->
+    <a href="/post" class="post-btn" style="text-decoration: none; display: block;">
+      我要发帖
+    </a>
+    <!-- 首页底部 -->
+    <footer class="footer">
+      <div class="footer-top">
+        <div class="footer-logo">Friendship</div>
+        <div class="footer-desc">
+          找到志同道合的伙伴，开启校园新生活!
+        </div>
+      </div>
+      <div class="line"></div>
+      <div class="footer-body">
+        <div class="footer-body-left">
+          <div class="your-account">
+            <h3>您的账号</h3>
+            <ul>
+              <li><a href="/login">登录</a></li>
+              <li><a href="/register">注册</a></li>
+              <li><a href="/personal_center">个人中心</a></li>
+            </ul>
+          </div>
+          <div class="Friendship">
+            <h3>Friendship</h3>
+            <ul>
+              <li><a href="#">关于我们</a></li>
+              <li><a href="#">联系我们</a></li>
+              <li><a href="#">隐私政策</a></li>
+              <li><a href="#">用户协议</a></li>
+              <li><a href="#">加入我们</a></li>
+            </ul>
+          </div>
+          <div class="follow-us">
+            <h3>关注我们</h3>
+            <ul>
+              <li><a href="#"><i class="iconfont icon-weixin"></i>微信</a></li>
+              <li><a href="#"><i class="iconfont icon-weibo"></i>微博</a></li>
+              <li><a href="#"><i class="iconfont icon-kuaishou"></i>快手</a></li>
+              <li><a href="#"><i class="iconfont icon-douyinzhanghao"></i>抖音</a></li>
+              <li><a href="#"><i class="iconfont icon-xiaohongshu"></i>小红书</a></li>
+            </ul>
+          </div>
+        </div>
+
+
+      </div>
+      <div class="footer-bottom">
+        <p>
+          © 2026 Campus Friendship. All Rights Reserved.
+        </p>
+        <p>
+          青春不打烊 遇见即是上上签。
+        </p>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // 用 fetch 加载 common.html 并插入到页面
+    fetch('/templates/common.html')
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('navbar-container').innerHTML = html;
+      })
+      .catch(err => console.error('加载导航栏失败:', err));
+
+    //轮播图
+    // 1. 获取元素
+    const carouselItems = document.querySelectorAll('.carousel-item'); // 所有轮播项
+    const indicators = document.querySelectorAll('.indicator');       // 所有指示器圆点
+    let currentIndex = 0; // 当前显示的第几张图
+    let timer = null;     // 定时器ID
+
+    // 2. 核心切换函数
+    function showSlide(index) {
+      // 边界检查：防止索引越界
+      if (index >= carouselItems.length) index = 0;
+      if (index < 0) index = carouselItems.length - 1;
+
+      // 移除所有项的 "active" 类（让它们隐藏）
+      carouselItems.forEach(item => item.classList.remove('active'));
+      // 移除所有指示器的 "active" 类（取消高亮）
+      indicators.forEach(ind => ind.classList.remove('active'));
+
+      // 给当前项和当前指示器加上 "active" 类（显示对应内容）
+      carouselItems[index].classList.add('active');
+      indicators[index].classList.add('active');
+
+      // 更新当前索引
+      currentIndex = index;
+    }
+
+    // 3. 自动轮播逻辑
+    function startAutoplay() {
+      // 防止重复开启定时器
+      if (timer) clearInterval(timer);
+      // 每隔 3 秒（3000毫秒）切换下一张
+      timer = setInterval(() => {
+        showSlide(currentIndex + 1);
+      }, 3000);
+    }
+
+    // 4. 手动点击指示器切换
+    indicators.forEach((indicator, index) => {
+      indicator.addEventListener('click', () => {
+        showSlide(index); // 点击第几个指示器，就切到第几张
+      });
+    });
+
+    // 5. 启动轮播
+    // 页面加载完成后，立即执行一次初始化（防止白屏）
+    showSlide(0);
+    // 开启自动播放
+    startAutoplay();
+
+  </script>
+</body>
+
+</html>

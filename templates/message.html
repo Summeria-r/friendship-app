@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>聊天</title>
+  <!-- 引入外部资源 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <!-- 引入纯CSS样式文件 -->
+  <link rel="stylesheet" href="/static/css/message.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ins-bg': '#f9fafb',
+            'ins-card': '#ffffff',
+            'ins-primary': '#007bff',
+            'ins-accent': '#007bff',
+            'ins-self': '#007bff',
+            'ins-other': '#f1f0f0'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-ins-bg font-sans h-screen overflow-hidden">
+  {% include 'common.html' %}
+
+  <div class="flex h-[calc(100vh-60px)]">
+    <!-- 左侧侧边栏：联系人列表 -->
+    <div class="w-80 bg-ins-card border-r border-ins-primary h-full flex flex-col shadow-sm">
+      <div class="p-4 border-b border-ins-primary">
+        <div class="relative">
+          <input type="text" placeholder="搜索" class="search-input">
+          <i class="fa fa-search search-icon"></i>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto scrollbar-hide">
+        {% if recent_users %}
+        {% for user in recent_users %}
+        <a href="/messages/chat/{{ user.id }}" class="contact-item" data-name="{{ user.nickname }}">
+          <img src="{{ user.avatar or '/static/images/默认头像.jpg' }}" alt="Avatar" class="contact-avatar">
+          <div class="flex-1">
+            <h3 class="contact-name">{{ user.nickname }}</h3>
+            <p class="contact-desc">{{ user.last_message or '暂无消息' }}</p>
+            {% if user.unread_count > 0 %}
+            <span class="unread-badge">{{ user.unread_count }}</span>
+            {% endif %}
+          </div>
+        </a>
+        {% endfor %}
+        {% else %}
+        <div class="flex flex-col items-center justify-center h-full text-gray-500">
+          <i class="fa fa-user-plus text-4xl mb-4"></i>
+          <p class="text-lg">没有好友</p>
+          <p class="text-sm mt-2">快去和别人聊天吧！</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- 右侧主聊天区域 -->
+    <div class="flex-1 flex flex-col h-full">
+      <!-- 聊天头部 -->
+      <div class="chat-header">
+        <div class="flex items-center">
+          <img id="chat-avatar" src="/static/images/默认头像.jpg" alt="Chat Avatar" class="chat-avatar">
+          <div>
+            <h2 id="chat-name" class="chat-title">选择一个联系人开始聊天</h2>
+            <p class="chat-status">在线</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 聊天消息区域 -->
+      <div id="message-container" class="message-container">
+        <div id="messages-list" class="messages-list">
+          <div class="flex flex-col items-center justify-center h-full text-gray-500">
+            <i class="fa fa-comments text-4xl mb-4"></i>
+            <p class="text-lg">开始你的第一次聊天吧！</p>
+            <p class="text-sm mt-2">选择左侧的联系人或去帖子中心与他人互动</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 输入工具栏 -->
+      <div class="input-toolbar">
+        <div class="relative">
+          <button id="camera-btn" class="tool-btn" disabled>
+            <i class="fa fa-camera"></i>
+          </button>
+        </div>
+        <button id="voice-btn" class="tool-btn" disabled>
+          <i class="fa fa-microphone"></i>
+        </button>
+        <div class="input-wrapper flex-1">
+          <input id="message-input" type="text" placeholder="输入消息..." class="message-input" disabled>
+        </div>
+        <button id="send-btn" class="send-btn" disabled>
+          <i class="fa fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 隐藏的视频流元素 (用于拍照) -->
+  <video id="video" class="hidden" autoplay playsinline></video>
+
+  <script>
+    // --- 全局变量与状态 ---
+    let isRecording = false;
+    let stream;
+
+    // --- DOM 元素引用 ---
+    const messagesList = document.getElementById('messages-list');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const voiceBtn = document.getElementById('voice-btn');
+    const cameraBtn = document.getElementById('camera-btn');
+    const chatName = document.getElementById('chat-name');
+    const chatAvatar = document.getElementById('chat-avatar');
+    const contactItems = document.querySelectorAll('.contact-item');
+
+    // --- 初始化函数 ---
+    init();
+    function init() {
+      bindEvents();
+    }
+
+    // --- 事件绑定 ---
+    function bindEvents() {
+      // 1. 侧边栏联系人点击
+      contactItems.forEach(item => {
+        item.addEventListener('click', function () {
+          contactItems.forEach(i => i.classList.remove('active-contact'));
+          this.classList.add('active-contact');
+        });
+      });
+    }
+  </script>
+</body>
+
+</html>

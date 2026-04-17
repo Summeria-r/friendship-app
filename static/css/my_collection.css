@@ -1,0 +1,111 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #fef5f9;
+  /* 浅粉底色 */
+  font-family: "微软雅黑", sans-serif;
+}
+
+.posts-wrap {
+  max-width: 600px;
+  margin: 20px auto;
+}
+
+/* 顶部标题栏 粉白风格 */
+.posts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border: 1px solid #f8d8e6;
+  border-radius: 12px 12px 0 0;
+  border-bottom: none;
+  background: #ffffff;
+}
+
+.posts-header h2 {
+  font-size: 22px;
+  color: #b85c80;
+  font-weight: 600;
+}
+
+.publish-btn {
+  background: #ffeaf4;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #e87aa8;
+}
+
+.publish-btn:hover {
+  background: #ffd6e8;
+}
+
+/* 列表外框 */
+.posts-list {
+  border: 1px solid #f8d8e6;
+  border-radius: 0 0 12px 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* 单条卡片 */
+.post-item {
+  padding: 20px;
+  border-bottom: 1px solid #ffeef6;
+}
+
+.post-item:last-child {
+  border-bottom: none;
+}
+
+.post-title {
+  font-size: 18px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.post-desc {
+  font-size: 16px;
+  color: #997888;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* 标签样式粉系适配 */
+.post-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  font-size: 12px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+  background: #e8f4ff;
+  color: #6099d8;
+}
+
+
+/* 统计按钮栏 */
+.post-stats {
+  display: flex;
+  gap: 20px;
+  font-size: 14px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: #c288a0;
+  cursor: pointer;
+}
+
+.action-btn.like.active,
+.action-btn.collect.active {
+  color: #ff4d4f;
+}

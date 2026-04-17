@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>消息详情</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/message.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'ins-bg': '#f9fafb',
+            'ins-card': '#ffffff',
+            'ins-primary': '#007bff',
+            'ins-accent': '#007bff',
+            'ins-self': '#007bff',
+            'ins-other': '#f1f0f0'
+          }
+        }
+      }
+    }
+  </script>
+</head>
+
+<body class="bg-ins-bg font-sans h-screen overflow-hidden">
+  {% include 'common.html' %}
+
+  <div class="flex h-[calc(100vh-60px)]">
+    <!-- 左侧侧边栏：联系人列表 -->
+    <div class="w-80 bg-ins-card border-r border-ins-primary h-full flex flex-col shadow-sm">
+      <div class="p-4 border-b border-ins-primary">
+        <div class="relative">
+          <input type="text" placeholder="搜索" class="search-input">
+          <i class="fa fa-search search-icon"></i>
+        </div>
+      </div>
+      <div class="flex-1 overflow-y-auto scrollbar-hide">
+        {% for contact in contacts %}
+        <a href="/messages/{{ contact.id }}" class="contact-item {% if contact.id == receiver.id %}active-contact{% endif %}" data-name="{{ contact.nickname }}">
+          <img src="{{ contact.avatar or '/static/images/默认头像.jpg' }}" alt="{{ contact.nickname }}" class="contact-avatar">
+          <div class="flex-1">
+            <h3 class="contact-name">{{ contact.nickname }}</h3>
+            <p class="contact-desc">
+              {% if contact.last_message %}
+                {% if contact.last_message.message_type == 'image' %}
+                  [图片]
+                {% elif contact.last_message.message_type == 'voice' %}
+                  [语音消息]
+                {% else %}
+                  {{ contact.last_message.content[:20] }}{% if contact.last_message.content|length > 20 %}...{% endif %}
+                {% endif %}
+              {% else %}
+                暂无消息
+              {% endif %}
+            </p>
+          </div>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- 右侧主聊天区域 -->
+    <div class="flex-1 flex flex-col h-full">
+      <!-- 聊天头部 -->
+      <div class="chat-header">
+        <div class="flex items-center">
+          <a href="/messages" class="mr-4 text-gray-500 hover:text-gray-700">
+            <i class="fa fa-arrow-left"></i>
+          </a>
+          <img src="{{ receiver.avatar or '/static/images/默认头像.jpg' }}" alt="用户头像" class="chat-avatar">
+          <div>
+            <h2 class="chat-title">{{ receiver.nickname }}</h2>
+            <p class="chat-status">在线</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 聊天消息区域 -->
+      <div id="message-container" class="message-container">
+        <div id="messages-list" class="messages-list">
+          {% for message in history %}
+          <div class="message-row {% if message.sender_id == user.id %}self{% else %}other{% endif %}">
+            <div class="message-item">
+              {% if message.message_type == 'image' or message.content.startswith('<img') %}
+              <div class="message-image-wrap">
+                {{ message.content | safe }}
+              </div>
+              {% elif message.message_type == 'voice' or message.content.startswith('<div class="voice-message-item') %}
+              {{ message.content | safe }}
+              {% else %}
+              <div class="message-text-bubble">
+                {{ message.content }}
+              </div>
+              {% endif %}
+              <p class="message-time-label">{{ message.created_at.strftime('%H:%M') }}</p>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- 输入工具栏 -->
+      <div class="input-toolbar">
+        <div class="relative">
+          <button id="camera-btn" class="tool-btn">
+            <i class="fa fa-camera"></i>
+          </button>
+          <input type="file" id="image-upload" accept="image/*" class="hidden" onchange="handleImageUpload(event)">
+        </div>
+        <button id="voice-btn" class="tool-btn">
+          <i class="fa fa-microphone"></i>
+        </button>
+        <input type="file" id="voice-upload" accept="audio/*,.webm,.wav,.mp3,.m4a,.ogg,.aac" class="hidden">
+        <form action="/messages/send" method="POST" class="flex-1 flex">
+          <input type="hidden" name="receiver_id" value="{{ receiver.id }}">
+          <div class="input-wrapper flex-1">
+            <input id="message-input" type="text" name="content" placeholder="输入消息..." class="message-input">
+          </div>
+          <button type="submit" id="send-btn" class="send-btn">
+            <i class="fa fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- 图片查看模态框 -->
+  <div id="image-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 hidden">
+    <div class="relative max-w-[90%] max-h-[90%]">
+      <img id="modal-image" src="" alt="预览图片" class="max-w-full max-h-[80vh] object-contain">
+      <button id="close-modal" class="absolute top-4 right-4 text-white text-2xl hover:text-gray-300">×</button>
+    </div>
+  </div>
+
+  <script>
+    // 双击图片查看大图
+    document.addEventListener('DOMContentLoaded', function() {
+      const imageModal = document.getElementById('image-modal');
+      const modalImage = document.getElementById('modal-image');
+      const closeModal = document.getElementById('close-modal');
+      
+      // 为所有图片添加双击事件
+      document.querySelectorAll('.message-img').forEach(img => {
+        img.addEventListener('dblclick', function() {
+          modalImage.src = this.src;
+          imageModal.classList.remove('hidden');
+        });
+      });
+      
+      // 关闭模态框
+      closeModal.addEventListener('click', function() {
+        imageModal.classList.add('hidden');
+      });
+      
+      // 点击模态框背景关闭
+      imageModal.addEventListener('click', function(e) {
+        if (e.target === imageModal) {
+          imageModal.classList.add('hidden');
+        }
+      });
+      
+      // 按ESC键关闭模态框
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && !imageModal.classList.contains('hidden')) {
+          imageModal.classList.add('hidden');
+        }
+      });
+    });
+  </script>
+
+  <!-- 隐藏的视频流元素 (用于拍照) -->
+  <video id="video" class="hidden" autoplay playsinline></video>
+
+  <script>
+    // --- 全局变量与状态 ---
+    let isRecording = false;
+    let stream;
+    let mediaRecorder;
+    let audioChunks = [];
+    let currentAudio = null;
+    let websocket = null;
+
+    // --- DOM 元素引用 ---
+    const messagesList = document.getElementById('messages-list');
+    const messageInput = document.getElementById('message-input');
+    const sendBtn = document.getElementById('send-btn');
+    const voiceBtn = document.getElementById('voice-btn');
+    const voiceUpload = document.getElementById('voice-upload');
+    const cameraBtn = document.getElementById('camera-btn');
+    let recordingMimeType = '';
+
+    // --- 初始化函数 ---
+    init();
+    function init() {
+      scrollToBottom();
+      bindEvents();
+      initVoiceMessages();
+      initWebSocket();
+    }
+
+    // --- WebSocket 初始化 ---
+    function initWebSocket() {
+      // 获取当前用户ID
+      const userId = {{ user.id }};
+      if (!userId) return;
+
+      // 建立 WebSocket 连接
+      const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${wsProtocol}//${window.location.host}/ws/chat/${userId}`;
+      websocket = new WebSocket(wsUrl);
+
+      // 连接成功
+      websocket.onopen = function() {
+        console.log('WebSocket 连接成功');
+      };
+
+      // 接收消息
+      websocket.onmessage = function(event) {
+        try {
+          const message = JSON.parse(event.data);
+          console.log('收到消息:', message);
+          
+          // 处理接收到的消息
+          if (message.type === 'chat' || message.type === 'self') {
+            // 检查消息是否来自当前聊天对象
+            const receiverId = {{ receiver.id }};
+            if (message.sender_id === receiverId || (message.type === 'self' && message.sender_id === userId)) {
+              // 添加消息到聊天界面
+              addMessageToUI(message);
+            }
+          }
+        } catch (error) {
+          console.error('WebSocket 消息处理失败:', error);
+        }
+      };
+
+      // 连接关闭
+      websocket.onclose = function() {
+        console.log('WebSocket 连接关闭');
+        // 尝试重连
+        setTimeout(initWebSocket, 3000);
+      };
+
+      // 连接错误
+      websocket.onerror = function(error) {
+        console.error('WebSocket 错误:', error);
+      };
+    }
+
+    // --- 添加消息到 UI ---
+    function addMessageToUI(message) {
+      const messagesList = document.getElementById('messages-list');
+      const messageRow = document.createElement('div');
+      const isSelf = message.type === 'self' || message.sender_id === {{ user.id }};
+      
+      messageRow.className = `message-row ${isSelf ? 'self' : 'other'}`;
+      
+      let messageContent = '';
+      if (message.message_type === 'image' || message.content.startsWith('<img')) {
+        messageContent = `
+          <div class="message-image-wrap">
+            ${message.content}
+          </div>
+        `;
+      } else if (message.message_type === 'voice' || message.content.startsWith('<div class="voice-message-item')) {
+        messageContent = message.content;
+      } else {
+        messageContent = `
+          <div class="message-text-bubble">
+            ${message.content}
+          </div>
+        `;
+      }
+      
+      messageRow.innerHTML = `
+        <div class="message-item">
+          ${messageContent}
+          <p class="message-time-label">${new Date(message.created_at).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</p>
+        </div>
+      `;
+      
+      messagesList.appendChild(messageRow);
+      scrollToBottom();
+      
+      // 重新初始化语音消息功能
+      initVoiceMessages();
+    }
+
+    // --- 事件绑定 ---
+    function bindEvents() {
+      // 1. 发送按钮点击
+      sendBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        sendMessage();
+      });
+
+      // 2. 回车发送
+      messageInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // 3. 语音输入
+      voiceBtn.addEventListener('mousedown', startRecording);
+      voiceBtn.addEventListener('mouseup', stopRecording);
+      voiceBtn.addEventListener('mouseleave', stopRecording);
+      voiceBtn.addEventListener('touchstart', startRecording, { passive: true });
+      voiceBtn.addEventListener('touchend', stopRecording);
+      voiceBtn.addEventListener('touchcancel', stopRecording);
+
+      // 4. 拍照上传
+      cameraBtn.addEventListener('click', function() {
+        // 显示自定义上传选项弹窗
+        showUploadOptions();
+      });
+    }
+
+    // --- 滚动到底部 ---
+    function scrollToBottom() {
+      const container = document.getElementById('message-container');
+      container.scrollTop = container.scrollHeight;
+    }
+
+    // --- 发送消息 ---
+    function sendMessage() {
+      const content = messageInput.value.trim();
+      if (!content) return;
+
+      const receiverId = {{ receiver.id }};
+      const userId = {{ user.id }};
+
+      // 通过 WebSocket 发送消息
+      if (websocket && websocket.readyState === WebSocket.OPEN) {
+        const messageData = {
+          receiver_id: receiverId,
+          content: content
+        };
+        
+        websocket.send(JSON.stringify(messageData));
+        messageInput.value = '';
+      } else {
+        // WebSocket 未连接，使用传统方式发送
+        const formData = new FormData();
+        formData.append('receiver_id', receiverId);
+        formData.append('content', content);
+        formData.append('message_type', 'text');
+        
+        fetch('/messages/send', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            // 刷新页面
+            window.location.reload();
+          } else {
+            throw new Error('发送失败');
+          }
+        })
+        .catch(error => {
+          console.error('发送消息失败:', error);
+          alert('发送消息失败，请重试');
+        });
+      }
+    }
+
+    function initVoiceMessages() {
+      document.querySelectorAll('.voice-message-item').forEach(item => {
+        const duration = Number(item.dataset.duration || 1);
+        const safeDuration = Math.max(1, duration);
+        const width = 92 + Math.min(180, safeDuration * 4);
+        item.style.width = `${width}px`;
+      });
+    }
+
+    function viewImage(imageUrl) {
+      const imageModal = document.getElementById('image-modal');
+      const modalImage = document.getElementById('modal-image');
+      modalImage.src = imageUrl;
+      imageModal.classList.remove('hidden');
+    }
+
+    // --- 显示上传选项弹窗 ---
+    function showUploadOptions() {
+      // 创建弹窗背景
+      const overlay = document.createElement('div');
+      overlay.style.position = 'fixed';
+      overlay.style.top = '0';
+      overlay.style.left = '0';
+      overlay.style.width = '100%';
+      overlay.style.height = '100%';
+      overlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+      overlay.style.zIndex = '1000';
+      overlay.style.display = 'flex';
+      overlay.style.alignItems = 'center';
+      overlay.style.justifyContent = 'center';
+      overlay.style.animation = 'fadeIn 0.3s ease';
+      document.body.appendChild(overlay);
+      
+      // 创建弹窗容器
+      const dialog = document.createElement('div');
+      dialog.style.backgroundColor = 'var(--ins-card)';
+      dialog.style.borderRadius = '12px';
+      dialog.style.padding = '24px';
+      dialog.style.width = '320px';
+      dialog.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.15)';
+      dialog.style.textAlign = 'center';
+      dialog.style.animation = 'slideUp 0.3s ease';
+      dialog.style.fontFamily = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+      
+      // 弹窗标题
+      const title = document.createElement('h3');
+      title.style.marginTop = '0';
+      title.style.marginBottom = '24px';
+      title.style.fontSize = '18px';
+      title.style.fontWeight = '600';
+      title.style.color = '#333';
+      title.textContent = '请选择上传方式';
+      dialog.appendChild(title);
+      
+      // 按钮容器
+      const buttonContainer = document.createElement('div');
+      buttonContainer.style.display = 'flex';
+      buttonContainer.style.flexDirection = 'column';
+      buttonContainer.style.gap = '12px';
+      
+      // 拍照按钮
+      const takePhotoBtn = document.createElement('button');
+      takePhotoBtn.textContent = '拍照';
+      takePhotoBtn.style.padding = '12px';
+      takePhotoBtn.style.border = '1px solid var(--ins-primary)';
+      takePhotoBtn.style.borderRadius = '8px';
+      takePhotoBtn.style.backgroundColor = 'var(--ins-card)';
+      takePhotoBtn.style.color = '#333';
+      takePhotoBtn.style.fontSize = '16px';
+      takePhotoBtn.style.fontWeight = '500';
+      takePhotoBtn.style.cursor = 'pointer';
+      takePhotoBtn.style.transition = 'all 0.2s ease';
+      takePhotoBtn.style.display = 'flex';
+      takePhotoBtn.style.alignItems = 'center';
+      takePhotoBtn.style.justifyContent = 'center';
+      takePhotoBtn.style.gap = '8px';
+      takePhotoBtn.innerHTML = '<i class="fa fa-camera"></i> 拍照';
+      takePhotoBtn.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = 'var(--ins-primary)';
+        this.style.color = 'white';
+        this.style.transform = 'translateY(-1px)';
+      });
+      takePhotoBtn.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = 'var(--ins-card)';
+        this.style.color = '#333';
+        this.style.transform = 'translateY(0)';
+      });
+      takePhotoBtn.addEventListener('click', function() {
+        overlay.style.animation = 'fadeOut 0.3s ease';
+        dialog.style.animation = 'slideDown 0.3s ease';
+        setTimeout(() => {
+          document.body.removeChild(overlay);
+          takePhoto();
+        }, 300);
+      });
+      buttonContainer.appendChild(takePhotoBtn);
+      
+      // 从相册选择按钮
+      const albumBtn = document.createElement('button');
+      albumBtn.textContent = '从相册选择';
+      albumBtn.style.padding = '12px';
+      albumBtn.style.border = '1px solid var(--ins-primary)';
+      albumBtn.style.borderRadius = '8px';
+      albumBtn.style.backgroundColor = 'var(--ins-card)';
+      albumBtn.style.color = '#333';
+      albumBtn.style.fontSize = '16px';
+      albumBtn.style.fontWeight = '500';
+      albumBtn.style.cursor = 'pointer';
+      albumBtn.style.transition = 'all 0.2s ease';
+      albumBtn.style.display = 'flex';
+      albumBtn.style.alignItems = 'center';
+      albumBtn.style.justifyContent = 'center';
+      albumBtn.style.gap = '8px';
+      albumBtn.innerHTML = '<i class="fa fa-image"></i> 从相册选择';
+      albumBtn.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = 'var(--ins-primary)';
+        this.style.color = 'white';
+        this.style.transform = 'translateY(-1px)';
+      });
+      albumBtn.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = 'var(--ins-card)';
+        this.style.color = '#333';
+        this.style.transform = 'translateY(0)';
+      });
+      albumBtn.addEventListener('click', function() {
+        overlay.style.animation = 'fadeOut 0.3s ease';
+        dialog.style.animation = 'slideDown 0.3s ease';
+        setTimeout(() => {
+          document.body.removeChild(overlay);
+          document.getElementById('image-upload').click();
+        }, 300);
+      });
+      buttonContainer.appendChild(albumBtn);
+      
+      // 取消按钮
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = '取消';
+      cancelBtn.style.padding = '12px';
+      cancelBtn.style.border = '1px solid var(--ins-primary)';
+      cancelBtn.style.borderRadius = '8px';
+      cancelBtn.style.backgroundColor = 'var(--ins-card)';
+      cancelBtn.style.color = '#333';
+      cancelBtn.style.fontSize = '16px';
+      cancelBtn.style.fontWeight = '500';
+      cancelBtn.style.cursor = 'pointer';
+      cancelBtn.style.transition = 'all 0.2s ease';
+      cancelBtn.style.marginTop = '8px';
+      cancelBtn.addEventListener('mouseenter', function() {
+        this.style.backgroundColor = 'var(--ins-primary)';
+        this.style.color = 'white';
+        this.style.transform = 'translateY(-1px)';
+      });
+      cancelBtn.addEventListener('mouseleave', function() {
+        this.style.backgroundColor = 'var(--ins-card)';
+        this.style.color = '#333';
+        this.style.transform = 'translateY(0)';
+      });
+      cancelBtn.addEventListener('click', function() {
+        overlay.style.animation = 'fadeOut 0.3s ease';
+        dialog.style.animation = 'slideDown 0.3s ease';
+        setTimeout(() => {
+          document.body.removeChild(overlay);
+        }, 300);
+      });
+      buttonContainer.appendChild(cancelBtn);
+      
+      dialog.appendChild(buttonContainer);
+      overlay.appendChild(dialog);
+    }
+
+    // --- 拍照功能 ---
+    async function takePhoto() {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const video = document.getElementById('video');
+        video.srcObject = stream;
+        video.classList.remove('hidden');
+        video.style.position = 'fixed';
+        video.style.top = '50%';
+        video.style.left = '50%';
+        video.style.transform = 'translate(-50%, -50%)';
+        video.style.zIndex = '1000';
+        video.style.width = '640px';
+        video.style.height = '480px';
+        video.style.border = '2px solid #ccc';
+        video.style.borderRadius = '8px';
+        
+        // 创建拍照和取消按钮
+        const buttonContainer = document.createElement('div');
+        buttonContainer.id = 'camera-controls';
+        buttonContainer.style.position = 'fixed';
+        buttonContainer.style.bottom = '20px';
+        buttonContainer.style.left = '50%';
+        buttonContainer.style.transform = 'translateX(-50%)';
+        buttonContainer.style.display = 'flex';
+        buttonContainer.style.gap = '20px';
+        buttonContainer.style.zIndex = '1001';
+        
+        const captureBtn = document.createElement('button');
+        captureBtn.textContent = '拍照';
+        captureBtn.style.padding = '12px 24px';
+        captureBtn.style.border = 'none';
+        captureBtn.style.borderRadius = '8px';
+        captureBtn.style.backgroundColor = '#4CAF50';
+        captureBtn.style.color = 'white';
+        captureBtn.style.fontSize = '16px';
+        captureBtn.style.fontWeight = '500';
+        captureBtn.style.cursor = 'pointer';
+        captureBtn.addEventListener('click', captureImage);
+        
+        const cancelBtn = document.createElement('button');
+        cancelBtn.textContent = '取消';
+        cancelBtn.style.padding = '12px 24px';
+        cancelBtn.style.border = 'none';
+        cancelBtn.style.borderRadius = '8px';
+        cancelBtn.style.backgroundColor = '#f44336';
+        cancelBtn.style.color = 'white';
+        cancelBtn.style.fontSize = '16px';
+        cancelBtn.style.fontWeight = '500';
+        cancelBtn.style.cursor = 'pointer';
+        cancelBtn.addEventListener('click', stopCamera);
+        
+        buttonContainer.appendChild(captureBtn);
+        buttonContainer.appendChild(cancelBtn);
+        document.body.appendChild(buttonContainer);
+        
+      } catch (error) {
+        console.error('获取摄像头失败:', error);
+        alert('无法访问摄像头，请检查权限设置。');
+      }
+    }
+
+    // --- 停止摄像头 ---
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      document.getElementById('video').classList.add('hidden');
+      const controls = document.getElementById('camera-controls');
+      if (controls) {
+        document.body.removeChild(controls);
+      }
+    }
+
+    // --- 拍照并上传 ---
+    function captureImage() {
+      const video = document.getElementById('video');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // 将 canvas 转换为 blob
+      canvas.toBlob(function(blob) {
+        // 创建 FormData
+        const formData = new FormData();
+        formData.append('receiver_id', {{ receiver.id }});
+        formData.append('content', '图片消息');
+        formData.append('image', blob, 'capture.jpg');
+        formData.append('message_type', 'image');
+        
+        // 发送图片
+        fetch('/messages/send', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (response.ok) {
+            // 不再刷新页面，等待WebSocket推送消息
+            console.log('图片消息发送成功');
+          } else {
+            throw new Error('上传失败');
+          }
+        })
+        .catch(error => {
+          console.error('上传图片失败:', error);
+          alert('上传图片失败，请重试');
+        });
+      }, 'image/jpeg', 0.8);
+      
+      stopCamera();
+    }
+
+    // --- 处理图片上传 ---
+    function handleImageUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      
+      // 创建 FormData
+      const formData = new FormData();
+      formData.append('receiver_id', {{ receiver.id }});
+      formData.append('content', '图片消息');
+      formData.append('image', file);
+      formData.append('message_type', 'image');
+      
+      // 发送图片
+      fetch('/messages/send', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (response.ok) {
+          // 不再刷新页面，等待WebSocket推送消息
+          console.log('图片消息发送成功');
+        } else {
+          throw new Error('上传失败');
+        }
+      })
+      .catch(error => {
+        console.error('上传图片失败:', error);
+        alert('上传图片失败，请重试');
+      });
+    }
+
+    // --- 开始录制语音 ---
+    async function startRecording() {
+      if (isRecording) return;
+      try {
+        // 检查浏览器支持
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          alert('您的浏览器不支持语音录制功能，请使用 Chrome 或 Edge 浏览器。');
+          return;
+        }
+        
+        // 获取麦克风权限
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // 创建MediaRecorder实例
+        const options = { mimeType: 'audio/webm' };
+        
+        // 检查MediaRecorder支持
+        if (!window.MediaRecorder) {
+          alert('您的浏览器不支持MediaRecorder API，请使用 Chrome 或 Edge 浏览器。');
+          stream.getTracks().forEach(track => track.stop());
+          return;
+        }
+        
+        mediaRecorder = new MediaRecorder(stream, options);
+        
+        // 清空音频块
+        audioChunks = [];
+        
+        // 监听数据可用事件
+        mediaRecorder.addEventListener('dataavailable', function(e) {
+          if (e.data.size > 0) {
+            audioChunks.push(e.data);
+          }
+        });
+        
+        // 监听录制结束事件
+        mediaRecorder.addEventListener('stop', function() {
+          // 创建音频Blob
+          const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+          
+          // 创建FormData对象
+          const formData = new FormData();
+          formData.append('receiver_id', {{ receiver.id }});
+          formData.append('content', '语音消息');
+          formData.append('audio', audioBlob, 'voice.webm');
+          formData.append('message_type', 'voice');
+          
+          // 发送语音消息
+          fetch('/messages/send', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => {
+            // 不再刷新页面，等待WebSocket推送消息
+            console.log('语音消息发送成功');
+          })
+          .catch(error => {
+            console.error('发送语音消息失败:', error);
+            alert('发送语音消息失败，请重试');
+          });
+        });
+        
+        // 开始录制
+        mediaRecorder.start();
+        isRecording = true;
+        
+        // 更新按钮状态
+        voiceBtn.classList.add('recording');
+        voiceBtn.innerHTML = '<i class="fa fa-stop"></i>';
+        
+        // 显示录制时长
+        let seconds = 0;
+        const timer = setInterval(() => {
+          seconds++;
+          voiceBtn.innerHTML = `<i class="fa fa-stop"></i> ${seconds}s`;
+        }, 1000);
+        
+        // 保存定时器引用
+        voiceBtn.timer = timer;
+        
+      } catch (error) {
+        console.error('获取麦克风权限失败:', error);
+        if (error.name === 'NotAllowedError') {
+          alert('麦克风权限被拒绝，请在浏览器设置中允许访问麦克风。\n\n设置方法：\n1. 点击浏览器地址栏左侧的锁图标\n2. 在权限设置中允许麦克风访问\n3. 刷新页面后重试');
+        } else if (error.name === 'NotFoundError') {
+          alert('未找到麦克风设备，请确保您的设备已连接麦克风。');
+        } else {
+          alert('无法访问麦克风，请检查权限设置。');
+        }
+        isRecording = false;
+      }
+    }
+
+    // --- 停止录制语音 ---
+    function stopRecording() {
+      if (!isRecording || !mediaRecorder) return;
+      
+      // 停止录制
+      mediaRecorder.stop();
+      
+      // 停止音频流
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      // 清除定时器
+      if (voiceBtn.timer) {
+        clearInterval(voiceBtn.timer);
+      }
+      
+      // 更新按钮状态
+      voiceBtn.classList.remove('recording');
+      voiceBtn.innerHTML = '<i class="fa fa-microphone"></i>';
+      
+      // 重置状态
+      isRecording = false;
+      mediaRecorder = null;
+      stream = null;
+    }
+
+    // 语音播放功能
+    function playVoice(element) {
+      const audioUrl = element.getAttribute('data-src');
+      
+      if (currentAudio && currentAudio.datasetSrc === audioUrl && !currentAudio.paused) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        element.classList.remove('playing');
+        currentAudio = null;
+        return;
+      }
+
+      // 停止当前正在播放的音频
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+        // 移除所有语音消息的播放状态
+        document.querySelectorAll('.voice-message-item').forEach(item => {
+          item.classList.remove('playing');
+        });
+      }
+      
+      // 创建新的音频对象
+      currentAudio = new Audio(audioUrl);
+      currentAudio.datasetSrc = audioUrl;
+      
+      // 开始播放
+      currentAudio.play();
+      
+      // 添加播放状态
+      element.classList.add('playing');
+      
+      // 播放结束时移除播放状态
+      currentAudio.onended = function() {
+        element.classList.remove('playing');
+        currentAudio = null;
+      };
+    }
+  </script>
+</body>
+
+</html>

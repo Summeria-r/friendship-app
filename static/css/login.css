@@ -1,0 +1,108 @@
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "微软雅黑", sans-serif;
+}
+
+/* 页面背景 */
+body {
+  background: linear-gradient(135deg, #fdfcfb 0%, #e2d1c3 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 登录卡片容器 */
+.login-box {
+  background: #fff;
+  width: 380px;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  border: 1px solid #f3e8ff;
+}
+
+/* 标题样式 */
+.login-box h2 {
+  text-align: center;
+  color: #6b7280;
+  margin-bottom: 30px;
+  font-size: 24px;
+}
+
+/* 输入组样式 */
+.input-group {
+  margin-bottom: 20px;
+}
+
+.input-group label {
+  display: block;
+  color: #4b5563;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+}
+
+/* 登录按钮样式 */
+.btn-login {
+  width: 100%;
+  padding: 13px;
+  background: #a855f7;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-login:hover {
+  background: #9333ea;
+  transform: translateY(-1px);
+}
+
+/* 错误信息样式 */
+.error-message {
+  background-color: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  color: #dc2626;
+  font-size: 14px;
+  text-align: center;
+}
+
+/* 链接组样式 */
+.link-group {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+.link-group a {
+  color: #a855f7;
+  text-decoration: none;
+}
+
+.link-group a:hover {
+  text-decoration: underline;
+}

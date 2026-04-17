@@ -1,0 +1,120 @@
+/* 全局重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #f9fafb;
+  padding: 30px;
+}
+
+/* 最外层容器 */
+.message-container {
+  max-width: 64rem;
+  margin: 0 auto;
+  border: 4px solid #EC4899;
+  border-radius: 1rem;
+  overflow: hidden;
+  background-color: white;
+}
+
+/* 顶部标题栏 */
+.message-header {
+  background-color: #EC4899;
+  color: white;
+  text-align: center;
+  padding: 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* 消息列表区域 */
+.message-list {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* 单个消息项 */
+.message-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid #f3f4f6;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.message-item:hover {
+  background-color: #f9fafb;
+}
+
+/* 最后一项去掉下边框 */
+.message-item:last-child {
+  border-bottom: none;
+}
+
+/* 头像通用样式 */
+.avatar {
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+/* 头像颜色变体 */
+.avatar-gray {
+  background-color: #e5e7eb;
+  color: #4b5563;
+}
+
+.avatar-blue {
+  background-color: #dbeafe;
+  color: #2563eb;
+}
+
+.avatar-purple {
+  background-color: #f3e8ff;
+  color: #9333ea;
+}
+
+.avatar-green {
+  background-color: #d1fae5;
+  color: #16a34a;
+}
+
+.avatar-orange {
+  background-color: #ffedd5;
+  color: #ea580c;
+}
+
+/* 消息内容区域 */
+.message-content {
+  flex: 1;
+}
+
+/* 消息名称 */
+.message-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+/* 消息预览 */
+.message-preview {
+  color: #9ca3af;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

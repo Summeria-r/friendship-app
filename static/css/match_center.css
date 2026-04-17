@@ -1,0 +1,85 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background-color: #fdf6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.card {
+  background-color: #ffffff;
+  width: 100%;
+  max-width: 360px;
+  padding: 50px 35px;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid #f7e6eb;
+  /* 后加 */
+  margin-right: 20px;
+}
+
+.main-title {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 600;
+  color: #4a4a4a;
+  margin-bottom: 8px;
+}
+
+.sub-title {
+  text-align: center;
+  font-size: 14px;
+  color: #999;
+  margin-bottom: 40px;
+}
+
+.select-input {
+  width: 100%;
+  height: 52px;
+  padding: 0 15px;
+  border-radius: 16px;
+  border: 1px solid #e6d8e0;
+  background-color: #fbf6f8;
+  font-size: 15px;
+  color: #555;
+  outline: none;
+  margin-bottom: 30px;
+}
+
+.select-input:focus {
+  border-color: #d8a6b8;
+  background-color: #fff;
+}
+
+.match-btn {
+  width: 100%;
+  height: 52px;
+  border-radius: 16px;
+  border: none;
+  background-color: #d8a6b8;
+  color: #fff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.match-btn:disabled {
+  background-color: #e9d5de;
+  cursor: not-allowed;
+}
+
+.match-btn:hover:enabled {
+  background-color: #c98ca5;
+}
+
+.match-btn:active:enabled {
+  transform: scale(0.97);
+}

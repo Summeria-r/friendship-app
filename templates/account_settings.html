@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>账号设置</title>
+  <link rel="stylesheet" href="/static/css/account_settings.css">
+  <link rel="stylesheet" href="/static/iconfont3/iconfont.css">
+</head>
+
+<body>
+  {% include 'common.html' %}
+
+  <div class="set-wrap">
+    <div class="set-header">
+      <h2>账号设置</h2>
+      <button class="back-btn" onclick="window.location.href='/personal/center'">返回</button>
+    </div>
+
+    <div class="set-card">
+      <!-- 修改手机号 -->
+      <div class="set-item" onclick="showPhoneInput()">
+        <div class="item-left">
+          <span class="item-title">修改绑定手机号</span>
+        </div>
+        <div class="item-right">
+          <span class="text-val" id="phoneText">138****6677</span>
+          <i class="iconfont icon-youjiantou"></i>
+        </div>
+      </div>
+
+      <!-- 修改密码 -->
+      <div class="set-item" onclick="showPwdInput()">
+        <div class="item-left">
+          <span class="item-title">修改登录密码</span>
+        </div>
+        <div class="item-right">
+          <span class="text-val">定期修改更安全</span>
+          <i class="iconfont icon-youjiantou"></i>
+        </div>
+      </div>
+
+      <div class="set-item">
+        <div class="item-left">
+          <span class="item-title">消息通知设置</span>
+        </div>
+        <div class="item-right">
+          <i class="iconfont icon-youjiantou"></i>
+        </div>
+      </div>
+      <div class="set-item">
+        <div class="item-left">
+          <span class="item-title">深浅模式切换</span>
+        </div>
+        <div class="item-right">
+          <i class="iconfont icon-youjiantou"></i>
+        </div>
+      </div>
+      <div class="set-item">
+        <div class="item-left">
+          <span class="item-title">个性主题皮肤</span>
+        </div>
+        <div class="item-right">
+          <i class="iconfont icon-youjiantou"></i>
+        </div>
+      </div>
+      <div class="set-item">
+        <div class="item-left">
+          <span class="item-title">关于我们</span>
+        </div>
+        <div class="item-right">
+          <i class="iconfont icon-youjiantou"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 弹窗层 -->
+  <div class="mask" id="mask"></div>
+
+  <!-- 修改手机号弹窗 -->
+  <div class="popup" id="phonePopup">
+    <h3>修改手机号</h3>
+    <input type="text" id="newPhone" placeholder="请输入新手机号">
+    <div class="btn-group">
+      <button class="cancel" onclick="closePhonePopup()">取消</button>
+      <button class="confirm" onclick="savePhone()">确定保存</button>
+    </div>
+  </div>
+
+  <!-- 修改密码弹窗 -->
+  <div class="popup" id="pwdPopup">
+    <h3>修改登录密码</h3>
+    <input type="password" id="oldPwd" placeholder="请输入原密码">
+    <input type="password" id="newPwd" placeholder="请输入新密码">
+    <input type="password" id="rePwd" placeholder="再次确认新密码">
+    <div class="btn-group">
+      <button class="cancel" onclick="closePwdPopup()">取消</button>
+      <button class="confirm" onclick="savePwd()">确定保存</button>
+    </div>
+  </div>
+
+  <script>
+    // 手机弹窗
+    function showPhoneInput() {
+      document.getElementById('mask').style.display = 'block';
+      document.getElementById('phonePopup').style.display = 'block';
+    }
+    function closePhonePopup() {
+      document.getElementById('mask').style.display = 'none';
+      document.getElementById('phonePopup').style.display = 'none';
+    }
+    function savePhone() {
+      let p = document.getElementById('newPhone').value.trim();
+      if (!/^1[3-9]\d{9}$/.test(p)) {
+        alert('手机号格式不正确！');
+        return;
+      }
+      // 脱敏展示
+      let hide = p.slice(0, 3) + '****' + p.slice(7);
+      document.getElementById('phoneText').innerText = hide;
+      closePhonePopup();
+      alert('手机号修改成功（前端模拟）');
+    }
+
+    // 密码弹窗
+    function showPwdInput() {
+      document.getElementById('mask').style.display = 'block';
+      document.getElementById('pwdPopup').style.display = 'block';
+    }
+    function closePwdPopup() {
+      document.getElementById('mask').style.display = 'none';
+      document.getElementById('pwdPopup').style.display = 'none';
+    }
+    function savePwd() {
+      let old = document.getElementById('oldPwd').value;
+      let n1 = document.getElementById('newPwd').value;
+      let n2 = document.getElementById('rePwd').value;
+      if (!old || !n1 || !n2) {
+        alert('密码不能为空！');
+        return;
+      }
+      if (n1 !== n2) {
+        alert('两次新密码不一致！');
+        return;
+      }
+      if (n1.length < 6) {
+        alert('新密码至少6位！');
+        return;
+      }
+      closePwdPopup();
+      alert('密码修改成功（前端模拟）');
+    }
+  </script>
+
+</body>
+
+</html>
