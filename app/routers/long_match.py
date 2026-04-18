@@ -1,6 +1,9 @@
 # 长期匹配路由
 # app/routers/long_match.py
+import logging
+
 from fastapi import APIRouter, Form, Request
+from fastapi.responses import JSONResponse
 from fastapi.templating import Jinja2Templates
 from app.security import get_current_user
 from app.services.long_match import handle_long_term_match, periodic_match_check
@@ -15,17 +18,30 @@ async def create_long_match_request(
     request: Request,
     interest_id: int = Form(...)
 ):
-    # 获取当前登录用户
-    user = await get_current_user(request)
+    try:
+        # 先把请求体打出来，看看前端传了什么
+        body = await request.json()
+        logging.info(f"收到的请求体: {body}")
     
-    # 处理长期匹配请求
-    match_record = await handle_long_term_match(
-        user_id=user.id,
-        interest_id=interest_id
-    )
     
-    status_msg = "匹配成功！" if match_record.status == MatchRecord.MatchStatus.MATCHED.value else "已进入匹配队列，正在为您寻找搭子..."
-    return {"message": status_msg, "status": match_record.status}
+        # 获取当前登录用户
+        user = await get_current_user(request)
+        
+        # 处理长期匹配请求
+        match_record = await handle_long_term_match(
+            user_id=user.id,
+            interest_id=interest_id
+        )
+        
+        status_msg = "匹配成功！" if match_record.status == MatchRecord.MatchStatus.MATCHED.value else "已进入匹配队列，正在为您寻找搭子..."
+        return {"message": status_msg, "status": match_record.status}
+    except Exception as e:
+        # 把错误信息打出来，包括栈追踪
+        logging.error(f"接口报错了！错误详情: {str(e)}", exc_info=True)
+        return JSONResponse(
+            status_code=400,
+            content={"detail": str(e)}
+        )
 
 # 定期检查匹配（手动触发接口，用于演示/测试）
 @long_match_router.get("/long_match/check")
