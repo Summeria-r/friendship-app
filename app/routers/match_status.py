@@ -18,7 +18,7 @@ async def check_match_status(request: Request, interest_id: int = Form(...), mat
         user1_id=user.id,
         interest_id=interest_id,
         match_type=match_type
-    ).order_by('-id').first()
+    ).prefetch_related('user2').order_by('-id').first()
     
     if not match_record:
         return JSONResponse({"status": "not_found", "message": "匹配记录不存在"})
@@ -27,12 +27,15 @@ async def check_match_status(request: Request, interest_id: int = Form(...), mat
     if match_record.status == MatchRecord.MatchStatus.MATCHED.value:
         # 匹配成功
         partner_nickname = "未知用户"
+        partner_id = None
         if match_record.user2:
             partner_nickname = match_record.user2.nickname if match_record.user2.nickname else match_record.user2.username
+            partner_id = match_record.user2.id
         
         return JSONResponse({
             "status": "matched",
-            "partner_nickname": partner_nickname
+            "partner_nickname": partner_nickname,
+            "partner_id": partner_id
         })
     elif match_record.status == MatchRecord.MatchStatus.EXPIRED.value:
         # 匹配过期

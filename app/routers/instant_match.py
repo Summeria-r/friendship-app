@@ -26,12 +26,14 @@ async def create_instant_match(request: Request, interest_id: int = Form(...)):
         if match_record.status == "matched":
             # 匹配成功
             partner_nickname = match_record.user2.nickname if match_record.user2 else "未知用户"
+            partner_id = match_record.user2.id if match_record.user2 else None
             return JSONResponse({
                 "status": "success",
                 "message": "匹配成功",
                 "data": {
                     "match_id": match_record.id,
-                    "partner_nickname": partner_nickname
+                    "partner_nickname": partner_nickname,
+                    "partner_id": partner_id
                 }
             })
         elif match_record.status == "matching":

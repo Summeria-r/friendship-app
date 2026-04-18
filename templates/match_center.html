@@ -109,13 +109,19 @@
         const result = await response.json();
         if (result.message) {
           alert(result.message);
-          // 跳转到匹配记录页面
-          window.location.href = '/match_record';
+          if ((result.status === 'matched' || result.status === 'success') && result.partner_id) {
+            window.location.href = `/to_chat/${result.partner_id}`;
+          } else {
+            window.location.href = '/match_record';
+          }
           isMatching = false;
         } else if (result.status === 'success') {
           alert(result.message + '，搭子：' + result.data.partner_nickname);
-          // 跳转到匹配记录页面
-          window.location.href = '/match_record';
+          if (result.data && result.data.partner_id) {
+            window.location.href = `/to_chat/${result.data.partner_id}`;
+          } else {
+            window.location.href = '/match_record';
+          }
           isMatching = false;
         } else if (result.status === 'matching' || !result.status) {
           alert('已进入匹配队列，正在每隔5秒帮你寻找搭子~');
@@ -163,8 +169,11 @@
           if (result.status === 'matched') {
             // 匹配成功
             alert('匹配成功！搭子：' + result.partner_nickname);
-            // 跳转到匹配记录页面
-            window.location.href = '/match_record';
+            if (result.partner_id) {
+              window.location.href = `/to_chat/${result.partner_id}`;
+            } else {
+              window.location.href = '/match_record';
+            }
             // 停止轮询
             stopCheckTimer();
             isMatching = false;

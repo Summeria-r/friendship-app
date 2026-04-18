@@ -30,7 +30,17 @@ async def create_long_match_request(
         )
         
         status_msg = "匹配成功！" if match_record.status == MatchRecord.MatchStatus.MATCHED.value else "已进入匹配队列，正在为您寻找搭子..."
-        return {"message": status_msg, "status": match_record.status}
+        partner_id = match_record.user2.id if getattr(match_record, "user2", None) else None
+        partner_nickname = None
+        if getattr(match_record, "user2", None):
+            partner_nickname = match_record.user2.nickname or match_record.user2.username
+
+        return {
+            "message": status_msg,
+            "status": match_record.status,
+            "partner_id": partner_id,
+            "partner_nickname": partner_nickname
+        }
     except Exception as e:
         # 把错误信息打出来，包括栈追踪
         logging.error(f"接口报错了！错误详情: {str(e)}", exc_info=True)

@@ -33,6 +33,14 @@ body{
     box-shadow:0 4px 12px rgba(0,0,0,0.04);
     position:relative;
 }
+.item.clickable{
+    cursor:pointer;
+    transition:transform .2s ease, box-shadow .2s ease;
+}
+.item.clickable:hover{
+    transform:translateY(-2px);
+    box-shadow:0 8px 18px rgba(0,0,0,0.08);
+}
 /* 行 */
 .row{
     display:flex;
@@ -133,8 +141,8 @@ body{
 <div id="list">
     {% if records %}
         {% for record in records %}
-        <div class="item" data-id="{{ record.id }}">
-            <button class="cancel-btn" {% if record.status != "匹配中" %}disabled{% endif %} onclick="cancel({{ record.id }})">
+        <div class="item {% if record.status == '已匹配' and record.partner_id %}clickable{% endif %}" data-id="{{ record.id }}" {% if record.status == "已匹配" and record.partner_id %}onclick="goToChat({{ record.partner_id }})"{% endif %}>
+            <button class="cancel-btn" {% if record.status != "匹配中" %}disabled{% endif %} onclick="cancel(event, {{ record.id }})">
                 {{ "取消匹配" if record.status == "匹配中" else "不可操作" }}
             </button>
 
@@ -174,8 +182,14 @@ body{
 </div>
 
 <script>
+function goToChat(partnerId) {
+    if (!partnerId) return;
+    window.location.href = `/to_chat/${partnerId}`;
+}
+
 // 取消匹配
-async function cancel(id) {
+async function cancel(event, id) {
+    event.stopPropagation();
     if(!confirm("确定取消该匹配？")) return;
     
     try {
