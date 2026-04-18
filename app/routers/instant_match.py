@@ -16,9 +16,6 @@ templates = Jinja2Templates(directory="templates")
 @instant_match_router.post("/instant_match")
 async def create_instant_match(request: Request, interest_id: int = Form(...)):
     try:
-        # 先把请求体打出来，看看前端传了什么
-        body = await request.json()
-        logging.info(f"收到的请求体: {body}")
     # 获取当前登录用户
         user = await get_current_user(request)
     
