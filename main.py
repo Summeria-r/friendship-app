@@ -8,7 +8,7 @@ from tortoise.exceptions import DoesNotExist, IntegrityError, OperationalError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.interval import IntervalTrigger
 import asyncio
-
+from fastapi.middleware.cors import CORSMiddleware
 # 导入全局配置
 from app.models import comment
 from config import SECRET_KEY, SESSION_MAX_AGE, get_tortoise_config
@@ -46,6 +46,13 @@ from app.services.instant_match import periodic_instant_match_check
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # 创建调度器
 scheduler = AsyncIOScheduler()
